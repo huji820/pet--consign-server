@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StaffMapper">
+
+    <resultMap id="staff" type="com.jxywkj.application.pet.model.consign.Staff">
+        <id property="staffNo" column="staff_no"/>
+        <result property="staffName" column="staff_name"/>
+        <result property="customer.customerNo" column="customer_no"/>
+        <result property="state" column="state"/>
+        <result property="phone" column="phone"/>
+        <result property="sex" column="sex"/>
+        <result property="role" column="role"/>
+        <association property="post" javaType="com.jxywkj.application.pet.model.consign.Post">
+            <id property="postNo" column="post_no"/>
+            <result property="postName" column="post_name"/>
+        </association>
+        <association property="station" javaType="com.jxywkj.application.pet.model.consign.Station">
+            <id property="stationNo" column="station_no"/>
+            <result property="stationName" column="station_name"/>
+            <result property="province" column="province"/>
+            <result property="city" column="city"/>
+            <result property="lng" column="lng"/>
+            <result property="lat" column="lat"/>
+            <result property="contact" column="contact"/>
+            <result property="phone" column="stationPhone"/>
+            <result property="address" column="address"/>
+            <result property="openId" column="stationOpenId"/>
+            <result property="stationLicenseImage" column="station_License_image"/>
+            <result property="idcardFrontImage" column="idcard_front_image"/>
+            <result property="idcardBackImage" column="idcard_back_image"/>
+            <result property="intoDate" column="into_date"/>
+            <result property="state" column="state"/>
+            <result property="collectionQRCode" column="collection_QR_code"/>
+        </association>
+    </resultMap>
+    <insert id="insertStaff" parameterType="com.jxywkj.application.pet.model.consign.Staff" useGeneratedKeys="true"
+            keyColumn="staffNo">
+        insert into t_consign_staff(staff_no,
+                                    staff_name,
+                                    station_no,
+                                    phone,
+                                    pwd,
+                                    state,
+                                    post_no,
+                                    sex,
+                                    customer_no)
+        values (#{staff.staffNo},
+                #{staff.staffName},
+                #{staff.station.stationNo},
+                #{staff.phone},
+                #{staff.pwd},
+                #{staff.state},
+                #{staff.post.postNo},
+                #{staff.sex},
+                #{staff.customer.customerNo});
+    </insert>
+
+    <select id="getStaffByCustomerNoAndStatus" resultMap="staff">
+        SELECT a.*
+        FROM t_consign_staff a
+                 JOIN t_common_customer b ON a.phone = b.phone
+        WHERE a.state = #{status}
+          AND b.customer_no = #{customerNo}
+        LIMIT 1;
+    </select>
+    <select id="getStaffByPhoneAndPwd" resultMap="staff">
+        SELECT a.*,
+               b.province,
+               b.city,
+               b.lng,
+               b.contact,
+               b.station_name,
+               b.lat,
+               b.address,
+               b.openId AS stationOpenId,
+               b.phone  AS stationPhone,
+               b.station_License_image,
+               b.idcard_front_image,
+               b.idcard_back_image,
+               b.into_date
+        FROM t_consign_staff a
+                 JOIN t_consign_station b ON a.station_no = b.station_no
+        WHERE a.phone = #{phone}
+          and pwd = #{pwd}
+          and a.state = 1
+          and b.state = #{state}
+        LIMIT 1;
+    </select>
+
+    <select id="listStaff" resultMap="staff">
+        select
+        a.staff_no,
+        a.staff_name,
+        a.phone,
+        a.sex,
+        b.post_no,
+        b.post_name
+        from t_consign_staff as a
+        left join t_consign_post as b on b.station_no = a.station_no
+        where
+        a.station_no= #{stationNo}
+        and a.state= #{state}
+        <if test="phone != null and phone !=''">
+            and a.phone like CONCAT(CONCAT('%',#{phone}),'%');
+        </if>
+        <if test="staffNo != null and staffNo !=''">
+            AND a.staff_no like CONCAT(CONCAT('%',#{staffNo}),'%');
+        </if>
+        <if test="staffName != null and staffName !=''">
+            AND a.staff_name like CONCAT(CONCAT('%',#{staffName}),'%');
+        </if>
+    </select>
+
+    <select id="countStaff" resultType="int">
+        select count(staff_no)
+        from t_consign_staff
+        WHERE state = #{state};
+    </select>
+    <update id="updateStaff">
+        update t_consign_staff
+        set staff_name=#{staffName},
+            phone=#{phone},
+            role=#{role},
+            sex=#{staffSex}
+        where staff_no = #{staffNo}
+    </update>
+
+    <delete id="deleteStaff">
+        update t_consign_staff
+        set state=0
+        where staff_no = #{staffNo}
+    </delete>
+
+    <select id="getStaffByPhoneNumberAndState" resultMap="staff">
+        SELECT *
+        FROM t_consign_staff
+        WHERE phone = #{phoneNumber}
+          AND state = #{state}
+        LIMIT 1;
+    </select>
+
+    <select id="listByStationN" resultType="com.jxywkj.application.pet.model.consign.Staff">
+        SELECT *
+        FROM t_consign_staff
+        WHERE station_no = #{stationNo}
+          AND state = #{state};
+    </select>
+
+    <select id="listByStationNoAndState" resultMap="staff">
+        SELECT *
+        FROM t_consign_staff staff
+                 LEFT JOIN t_consign_station station ON staff.station_no = station.station_no
+        WHERE staff.station_no = #{stationNo}
+          AND staff.state = #{state};
+    </select>
+
+    <update id="updateStaffState" parameterType="com.jxywkj.application.pet.model.consign.Staff">
+        UPDATE t_consign_staff
+        SET state = #{staff.state},
+            role  = #{staff.role}
+        WHERE staff_no = #{staff.staffNo};
+    </update>
+
+    <select id="getByStaffNo" resultMap="staff">
+        SELECT *
+        FROM t_consign_staff
+        WHERE staff_no = #{staffNo}
+          AND state = #{state};
+    </select>
+
+    <select id="getByPhone" resultType="com.jxywkj.application.pet.model.consign.Staff">
+        SELECT *
+        FROM t_consign_staff
+        WHERE phone = #{phone}
+        LIMIT 1;
+    </select>
+
+    <select id="getByCustomerNo" resultMap="staff">
+        SELECT *
+        FROM t_consign_staff
+        WHERE customer_no = #{customerNo}
+        AND state = 1
+        LIMIT 1;
+    </select>
+
+    <select id="getStationAdmin" resultMap="staff">
+        SELECT a.*,
+               b.province,
+               b.city,
+               b.lng,
+               b.contact,
+               b.station_name,
+               b.lat,
+               b.address,
+               b.openId AS stationOpenId,
+               b.phone  AS stationPhone,
+               b.city,
+               b.province,
+               b.district,
+               b.station_License_image,
+               b.idcard_front_image,
+               b.idcard_back_image,
+               b.into_date,
+               b.collection_QR_code
+        FROM t_consign_staff a
+                 JOIN t_consign_station b ON a.station_no = b.station_no
+        WHERE a.phone = #{phone}
+          and a.state = 1
+          and b.state = #{state}
+          AND NOT EXISTS(SELECT 1 FROM t_common_black_list WHERE a.phone = phone)
+        LIMIT 1;
+    </select>
+
+    <select id="listAdminStaff" resultMap="staff">
+        SELECT
+        a.*, b.province,
+        b.city,
+        b.lng,
+        b.contact,
+        b.station_name,
+        b.lat,
+        b.address,
+        b.openId AS stationOpenId,
+        b.phone AS stationPhone,
+        b.station_License_image,
+        b.idcard_front_image,
+        b.idcard_back_image,
+        b.into_date,
+        b.collection_QR_code
+        FROM
+        t_consign_staff a
+        JOIN t_consign_station b ON a.station_no = b.station_no
+        WHERE a.state = #{state}
+        <if test="stationNo > 0">
+            and a.station_no = #{stationNo}
+        </if>
+
+        LIMIT #{start}, #{limit};
+    </select>
+    <select id="countAdminStaff" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        t_consign_staff a
+        JOIN t_consign_station b ON a.station_no = b.station_no
+        WHERE a.state = #{state}
+        <if test="stationNo > 0">
+            and a.station_no = #{stationNo}
+        </if>
+    </select>
+
+    <delete id="removeStaff">
+        DELETE
+        FROM t_consign_staff
+        WHERE staff_no = #{staffNo};
+    </delete>
+
+    <select id="listByStationNoAndRoles" resultType="com.jxywkj.application.pet.model.consign.Staff">
+        SELECT * FROM t_consign_staff WHERE station_no = #{stationNo}
+        <if test="roles != null and roles.length > 0">
+            AND role in
+            <foreach collection="roles" item="role" open="(" close=")" separator=",">
+                #{role}
+            </foreach>
+        </if>
+    </select>
+</mapper>

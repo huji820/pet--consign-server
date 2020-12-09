@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderRemarksMapper">
+    <insert id="saveRemarks">
+        INSERT INTO t_consign_order_remarks (order_no , station_no , staff_no , remarks , date_time)
+         VALUES (#{orderRemarks.order.orderNo} ,
+          #{orderRemarks.station.stationNo} ,#{orderRemarks.staff.staffNo} ,
+           #{orderRemarks.remarks} , #{orderRemarks.dateTime});
+    </insert>
+</mapper>

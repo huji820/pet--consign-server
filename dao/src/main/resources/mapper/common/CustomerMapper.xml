@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.CustomerMapper">
+
+    <resultMap id="baseCustomerResultMap" type="com.jxywkj.application.pet.model.common.Customer">
+        <id property="customerNo" column="customer_no"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="headerImage" column="header_image"/>
+        <result property="phone" column="phone"/>
+        <result property="lastLogintime" column="last_login_time"/>
+        <result property="registrationDate" column="registration_date"/>
+        <result property="registrationTime" column="registration_time"/>
+        <result property="sex" column="sex"/>
+        <result property="points" column="points"/>
+        <result property="balance" column="balance"/>
+        <result property="shareBusiness.businessNo" column="share_business_no"/>
+        <result property="shareStation.stationNo" column="share_station_no"/>
+        <result property="business.businessNo" column="business_no"/>
+    </resultMap>
+
+    <insert id="insetCustomer">
+        INSERT INTO t_common_customer (customer_no,
+                                       customer_name,
+                                       phone,
+                                       header_image,
+                                       sex,
+                                       unionId,
+                                       last_login_time,
+                                       registration_date,
+                                       registration_time,
+                                       share_station_no,
+                                       share_business_no)
+        VALUES (#{customerNo},
+                #{customerName},
+                #{phone},
+                #{headerImage},
+                #{sex},
+                #{unionId},
+                #{lastLogintime},
+                #{registrationDate},
+                #{registrationTime},
+                #{shareStation.stationNo},
+                #{shareBusiness.businessNo});
+    </insert>
+    <update id="updateCustomer">
+        update t_common_customer
+        set customer_name= #{customerName},
+            header_image= #{headerImage},
+            sex= #{sex},
+            last_login_time= #{lastLogintime},
+            registration_date= #{registrationDate},
+            registration_time= #{registrationTime},
+            unionid = #{unionId}
+        where phone = #{phone};
+    </update>
+
+    <select id="getCustomerByPhoneNumber" resultMap="baseCustomerResultMap">
+        SELECT *
+        FROM t_common_customer
+        WHERE phone = #{phoneNumber}
+        LIMIT 1;
+    </select>
+
+    <update id="updateCustomerAddBalance">
+        UPDATE t_common_customer
+        SET balance = balance + #{amount}
+        WHERE customer_no = #{customerNo};
+    </update>
+
+    <select id="getCustomerByCustomerNo" parameterType="java.lang.String" resultMap="baseCustomerResultMap">
+        SELECT *
+        FROM t_common_customer
+        WHERE customer_no = #{customerNo};
+    </select>
+
+    <delete id="deleteByPhone">
+        DELETE
+        FROM t_common_customer
+        WHERE phone = #{phone};
+    </delete>
+
+    <select id="getByUnionId" resultMap="baseCustomerResultMap">
+        SELECT *
+        FROM t_common_customer
+        WHERE unionId = #{unionId}
+        LIMIT 1;
+    </select>
+
+</mapper>

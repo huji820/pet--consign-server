@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.admin.ManagerMapper">
+
+
+    <select id="getManager" resultType="com.jxywkj.application.pet.model.admin.Manager">
+        select * from t_admin_manager where manager_no = #{phone};
+    </select>
+
+    <select id="listManager" resultType="com.jxywkj.application.pet.model.admin.Manager">
+        SELECT * FROM t_admin_manager WHERE active = 1;
+    </select>
+</mapper>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>黑名单配置</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        .el-table .warning-row {
+            background: RGB(354, 240, 240);
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="margin-top: 10px">
+        <el-header>
+            <h2>站点屏蔽配置</h2>
+        </el-header>
+        <el-main>
+            <!-- 提示 -->
+            <el-alert
+                    style="width: 800px"
+                    title="警告提示"
+                    type="error"
+                    description="如果将站点加入黑名单，那么所有由这个站点去往被拉黑站点的单子，被拉黑的站点将无法查询该工单。"
+                    show-icon>
+            </el-alert>
+            <el-button type="primary" @click="addAction">添加屏蔽站点</el-button>
+            <!-- 表格 -->
+            <el-table
+                    :data="table.data"
+                    style="width: 100%"
+                    :row-class-name="tableRowClassName">
+                <el-table-column
+                        prop="stationName"
+                        label="站点名称">
+                </el-table-column>
+                <el-table-column
+                        prop="province"
+                        label="省">
+                </el-table-column>
+                <el-table-column
+                        prop="city"
+                        label="市">
+                </el-table-column>
+                <el-table-column
+                        prop="contact"
+                        label="管理员">
+                </el-table-column>
+                <el-table-column
+                        prop="phone"
+                        label="管理员电话">
+                </el-table-column>
+                <el-table-column
+                        prop="address"
+                        label="地址">
+                </el-table-column>
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button
+                                size="mini"
+                                type="danger"
+                                @click="deleteAction(scope.row)">删除
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-main>
+    </el-container>
+    <!-- 添加dialog -->
+    <el-dialog title="新增屏蔽站点" :visible.sync="showDialog">
+        <el-form>
+            <el-form-item label="选择站点">
+                <el-select v-model="blacklistStationNo" placeholder="请选择">
+                    <el-option
+                            v-for="item in stationList"
+                            :key="item.stationNo"
+                            :label="item.stationName"
+                            :value="item.stationNo">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="showDialog = false">取 消</el-button>
+            <el-button type="primary" @click="save()">确 定</el-button>
+        </div>
+    </el-dialog>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                table: {
+                    data: []
+                },
+                stationList: [],
+                showDialog: false,
+                blacklistStationNo: ''
+            }
+        },
+        methods: {
+            /**表格颜色设置*/
+            tableRowClassName({row, rowIndex}) {
+                return 'warning-row';
+            },
+            /**获取黑名单列表*/
+            getBlacklist() {
+                axios.get('/consign/blacklist/all').then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        if (res.data.data != null && res.data.data.blacklistStationList != null) {
+                            this.table.data = res.data.data.blacklistStationList;
+                        }
+                    } else {
+                        this.$message.error('获取黑名单失败！');
+                    }
+                }).catch(err => {
+                    this.$message.error('获取黑名单失败！');
+                })
+            },
+            /**新增一条数据*/
+            save() {
+                this.$confirm('是否将该站点加入黑名单？加入之后对方将无法获取任何从本站点出发的单据', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.post('/consign/blacklist', {blacklistStation: {stationNo: this.blacklistStationNo}}).then(res => {
+                        if (res.status === 200 && res.data.code === 200) {
+                            this.$message({message: '添加成功', type: 'success'});
+                        } else {
+                            this.$message.error('添加失败！');
+                        }
+                        this.getBlacklist();
+                    }).catch(err => {
+                        this.$message.error('添加失败！');
+                    });
+                }).catch(() => {
+                });
+                this.showDialog = false;
+            },
+            /**删除按钮事件*/
+            deleteAction(row) {
+
+                this.$confirm('是否将该站点从黑名单移除？移除之后对方站点将可以看到从本站点出发去往该站点的所有单据', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.delete('/consign/blacklist', {params: {'stationNo': row.stationNo}}).then(res => {
+                        if (res.status === 200 && res.data.code === 200) {
+                            this.$message({message: '移除成功', type: 'success'});
+                        } else {
+                            this.$message.error('移除失败！');
+                        }
+                        this.getBlacklist();
+                    }).catch(err => {
+                        this.$message.error('移除失败！');
+                    });
+                }).catch(() => {
+                });
+            },
+            /**获取所有站点信息*/
+            getAllStation() {
+                if (this.stationList == null || this.stationList.length === 0) {
+                    axios.get('/consign/station/all').then(res => {
+                        if (res.status === 200 && res.data.code === 200) {
+                            this.stationList = res.data.data;
+                        } else {
+                            this.$message.error('获取站点信息失败！');
+                        }
+                    }).catch(err => {
+                        this.$message.error('获取站点信息失败！');
+                    });
+                }
+            },
+            /**添加按钮事件*/
+            addAction() {
+                // 重置黑名单编号
+                this.blacklistStationNo = '';
+                // 将页面打开
+                this.showDialog = true;
+
+            }
+        },
+        created() {
+            this.getBlacklist();
+            // 获取所有的站点信息
+            this.getAllStation();
+        }
+    });
+</script>
+</html>

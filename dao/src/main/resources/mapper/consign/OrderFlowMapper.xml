@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderFlowMapper">
+    <resultMap id="orderFlowResultMap" type="com.jxywkj.application.pet.model.consign.OrderFlow">
+        <id column="order_no" property="order.orderNo"/>
+        <result column="payment_amount" property="order.paymentAmount"/>
+        <result column="staff_no" property="order.staff.staffNo" />
+        <result column="payment_voucher" property="order.paymentVoucher" />
+        <collection property="orderFlowDetails" ofType="com.jxywkj.application.pet.model.consign.OrderFlowDetail">
+            <id column="flow_no" property="flowNo"/>
+            <result column="flow_name" property="flowName"/>
+            <result column="flow_type" property="flowType"/>
+            <result column="flow_time" property="flowTime"/>
+            <result column="flow_amount" property="flowAmount"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="listByStationNo" resultMap="orderFlowResultMap">
+        SELECT main.order_no,
+               main.payment_amount,
+               main.staff_no,
+               main.payment_voucher,
+               main.flow_no,
+               main.flow_name,
+               main.flow_type,
+               main.flow_type,
+               main.flow_time,
+               main.flow_amount
+        FROM (
+                 SELECT order_nos.order_no                                AS order_no,
+                        orders.payment_amount,
+                        orders.staff_no,
+                        orders.payment_voucher,
+                        balance_flow.flow_no,
+                        stations.station_name                             AS flow_name,
+                        balance_flow.flow_type                            AS flow_type,
+                        balance_flow.date_time                            AS flow_time,
+                        balance_flow.flow_amount                          AS flow_amount,
+                        CONCAT(orders.order_date, ' ', orders.order_time) AS order_time
+                 FROM (
+                          SELECT temp_order.order_no,
+                                 temp_order.date_time
+                          FROM (
+                                   SELECT bill_no AS order_no,
+                                          date_time
+                                   FROM t_station_balance_flow order_flow
+                                   WHERE station_no = #{stationNo}
+                                     AND EXISTS(
+                                           SELECT 1
+                                           FROM t_consign_order
+                                           WHERE order_flow.bill_no = order_no
+                                       )
+                                   GROUP BY bill_no
+                                   UNION
+                                   SELECT link_no AS order_no,
+                                          date_time
+                                   FROM t_station_balance_flow order_flow
+                                   WHERE station_no =
+                                         #{stationNo}
+                                     AND EXISTS(
+                                           SELECT 1
+                                           FROM t_consign_order
+                                           WHERE order_flow.link_no = order_no
+                                       )
+                                   GROUP BY link_no
+                               ) temp_order
+                                   LEFT JOIN t_consign_order main_orders
+                                             ON temp_order.order_no = main_orders.order_no
+                          GROUP BY order_no
+                          ORDER By CONCAT(main_orders.order_date, ' ', main_orders.order_time) DESC
+                          LIMIT #{offset}, #{limit}
+                      ) order_nos
+                          JOIN t_station_balance_flow balance_flow
+                               ON (
+                                       order_nos.order_no = balance_flow.link_no
+                                       OR
+                                       order_nos.order_no = balance_flow.bill_no
+                                   )
+                          LEFT JOIN t_consign_station stations
+                                    ON balance_flow.station_no = stations.station_no
+                          LEFT JOIN t_consign_order orders ON order_nos.order_no = orders.order_no
+                 UNION ALL
+                 SELECT order_nos.order_no                                AS order_no,
+                        orders.payment_amount,
+                        orders.staff_no,
+                        orders.payment_voucher,
+                        balance_flow.flow_no,
+                        business.business_name                            AS flow_name,
+                        balance_flow.flow_type                            AS flow_type,
+                        balance_flow.date_time                            AS flow_time,
+                        balance_flow.flow_amount                          AS flow_amount,
+                        CONCAT(orders.order_date, ' ', orders.order_time) AS order_time
+                 FROM (
+                          SELECT temp_order.order_no
+                          FROM (
+                                   SELECT bill_no AS order_no, date_time
+                                   FROM t_station_balance_flow order_flow
+                                   WHERE station_no = #{stationNo}
+                                     AND EXISTS(
+                                           SELECT 1
+                                           FROM t_consign_order
+                                           WHERE order_flow.bill_no = order_no
+                                       )
+                                   GROUP BY bill_no
+                                   UNION
+                                   SELECT link_no AS order_no, date_time
+                                   FROM t_station_balance_flow order_flow
+                                   WHERE station_no = #{stationNo}
+                                     AND EXISTS(
+                                           SELECT 1
+                                           FROM t_consign_order
+                                           WHERE order_flow.link_no = order_no
+                                       )
+                                   GROUP BY link_no
+                               ) temp_order
+                                   LEFT JOIN t_consign_order main_orders
+                                             ON temp_order.order_no = main_orders.order_no
+                          GROUP BY order_no
+                          ORDER BY CONCAT(main_orders.order_date, ' ', main_orders.order_time) DESC
+                          LIMIT #{offset} , #{limit}
+                      ) order_nos
+                          JOIN t_business_balance_flow balance_flow
+                               ON (
+                                       order_nos.order_no = balance_flow.link_no
+                                       OR
+                                       order_nos.order_no = balance_flow.bill_no
+                                   )
+                          LEFT JOIN t_business_business business
+                                    ON balance_flow.business_no = business.business_no
+                          LEFT JOIN t_consign_order orders ON order_nos.order_no = orders.order_no
+             ) main
+        ORDER BY order_time DESC;
+    </select>
+
+
+    <select id="listByBusinessNo" resultMap="orderFlowResultMap">
+        SELECT order_nos.order_no       AS order_no,
+               orders.payment_amount,
+               balance_flow.flow_no,
+               business.business_name   AS flowName,
+               balance_flow.flow_type   AS flowType,
+               balance_flow.date_time   AS flow_time,
+               balance_flow.flow_amount AS flowAmount
+        FROM (
+                 SELECT order_no
+                 FROM (
+                          SELECT bill_no AS order_no,
+                                 date_time
+                          FROM t_business_balance_flow order_flow
+                          WHERE business_no = #{businessNo}
+                            AND EXISTS(
+                                  SELECT 1
+                                  FROM t_consign_order
+                                  WHERE order_flow.bill_no = order_no
+                              )
+                          GROUP BY bill_no
+                          UNION
+                          SELECT link_no AS order_no,
+                                 date_time
+                          FROM t_business_balance_flow order_flow
+                          WHERE business_no = #{businessNo}
+                            AND EXISTS(
+                                  SELECT 1
+                                  FROM t_consign_order
+                                  WHERE order_flow.link_no = order_no
+                              )
+                          GROUP BY link_no
+                      ) temp_order
+                 GROUP BY order_no
+                 ORDER BY date_time DESC
+                 LIMIT #{offset},#{limit}
+             ) order_nos
+                 JOIN t_business_balance_flow balance_flow ON (
+                order_nos.order_no = balance_flow.link_no
+                OR order_nos.order_no = balance_flow.bill_no
+            )
+                 LEFT JOIN t_business_business business ON balance_flow.business_no = business.business_no
+                 LEFT JOIN t_consign_order orders ON order_nos.order_no = orders.order_no
+        ORDER BY balance_flow.date_time DESC;
+    </select>
+
+    <select id="getByOrderNoAndStationNo" resultMap="orderFlowResultMap">
+        SELECT * FROM t_station_balance_flow
+        WHERE `bill_no` = #{orderNo}
+        AND `station_no` = #{stationNo}
+        ORDER by date_time DESC
+        LIMIT 1;
+    </select>
+</mapper>

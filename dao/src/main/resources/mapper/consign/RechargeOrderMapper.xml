@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.RechargeOrderMapper">
+    <insert id="addRechargeOrder" parameterType="com.jxywkj.application.pet.model.consign.RechargeOrder">
+        INSERT INTO t_customer_recharge_order (order_no,customer_no,recharge_amount,recharge_date,recharge_time,order_state)
+         VALUES (#{rechargeOrder.orderNo},#{rechargeOrder.customerNo},
+         #{rechargeOrder.rechargeAmount},#{rechargeOrder.rechargeDate},
+         #{rechargeOrder.rechargeTime},#{rechargeOrder.orderState});
+    </insert>
+
+    <select id="getByOrderNo" parameterType="java.lang.String"
+            resultType="com.jxywkj.application.pet.model.consign.RechargeOrder">
+        SELECT * FROM t_customer_recharge_order WHERE order_no = #{orderNo};
+    </select>
+
+    <update id="updateOrderState" parameterType="java.lang.String">
+        UPDATE t_customer_recharge_order SET order_state = #{orderState} WHERE order_no = #{orderNo};
+    </update>
+</mapper>
+

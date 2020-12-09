@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="/static/js/axios.min.js"></script>
+</head>
+<style>
+    html, body {
+        height: 100%;
+    }
+</style>
+
+<body>
+<div id="app">
+    <el-row style="margin: 20px">
+        <el-col :span="24">
+            <el-form :inline="true" :model="searchData">
+                <el-form-item label="开始日期" label-width="80px">
+                    <el-date-picker
+                            v-model="searchData.startDate"
+                            style="width: 160px"
+                            value-format="yyyy-MM-dd"
+                            placeholder="选择开始日期">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="结束日期" label-width="80px">
+                    <el-date-picker
+                            v-model="searchData.endDate"
+                            style="width: 160px"
+                            value-format="yyyy-MM-dd"
+                            placeholder="选择结束日期">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="loadData">查询</el-button>
+                    <el-button type="success" @click="exportTransport" :disabled="exportWait">
+                        导出表格
+                    </el-button>
+                </el-form-item>
+            </el-form>
+        </el-col>
+    </el-row>
+
+
+    <el-row>
+        <el-col :span="24">
+            <el-table
+                    :data="table.data"
+                    stripe
+                    border
+                    :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                    :cell-style="{'text-align': 'center'}"
+            >
+                <el-table-column
+                        prop="flowNo"
+                        label="流水单号"
+                >
+                </el-table-column>
+                <el-table-column
+                        prop="dateTime"
+                        label="时间">
+                </el-table-column>
+                <el-table-column
+                        prop="flowType"
+                        label="单据类型">
+                </el-table-column>
+                <el-table-column
+                        prop="flowAmount"
+                        label="金额">
+                </el-table-column>
+                <el-table-column
+                        prop="linkNo"
+                        label="金额">
+                </el-table-column>
+                <el-table-column
+                        prop="balance"
+                        label="余额">
+                </el-table-column>
+            </el-table>
+        </el-col>
+    </el-row>
+    <div style="margin: 0 auto;text-align: center">
+        <el-pagination
+                @size-change="handleSizeChange"
+                @current-change="handlePageChange"
+                :current-page="searchData.pageIndex"
+                :page-sizes="[10, 20, 30, 50]"
+                :page-size="searchData.pageSize"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="table.listCount">
+        </el-pagination>
+    </div>
+</div>
+
+</div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<!-- import JavaScript -->
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                exportWait: false,
+                searchData: {
+                    startDate: '',
+                    endDate: '',
+                    pageIndex: 1,
+                    pageSize: 10
+                },
+                table: {
+                    data: [],
+                    listCount: 0,
+                },
+                maxHeight: 10
+            }
+        },
+        methods: {
+            loadData() {
+                axios.get('/consign/flow/station', {params: this.searchData}
+                ).then((res) => {
+                    if (res.status === 200) {
+                        this.setFlowType(res.data.root);
+                        this.table.data = res.data.root;
+                        this.table.listCount = res.data.totalCount;
+
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            exportTransport() {
+                this.exportWait = true;
+                window.location.href = "/consign/flow/station/export?startDate=" + this.searchData.startDate + "&endDate=" + this.searchData.endDate;
+                setTimeout(() => {
+                    this.exportWait = false;
+                }, 1000)
+            },
+            handleSizeChange(size) {
+                this.searchData.pageSize = size;
+                this.loadData();
+            },
+            handlePageChange(index) {
+                this.searchData.pageIndex = index;
+                this.loadData();
+            },
+            setFlowType(stationFlowList) {
+                if (stationFlowList && stationFlowList.length > 0) {
+                    for (let i = 0; i < stationFlowList.length; i++) {
+                        let flow = stationFlowList[i];
+                        switch (flow.flowType) {
+                            case 'orderStation' :
+                                flow.flowType = '站点所得';
+                                break;
+                            case 'orderRebate' :
+                                flow.flowType = '下单返利';
+                                break;
+                            case 'withdrawConfirm' :
+                                flow.flowType = '提现';
+                                break;
+                            case 'withdrawReject' :
+                                flow.flowType = '提现驳回';
+                                break;
+                            case 'orderPremium' :
+                                flow.flowType = '订单补差价';
+                                break;
+                            case 'orderRefund' :
+                                flow.flowType = '订单退款';
+                                break;
+                            case 'orderInsure' :
+                                flow.flowType = '订单投保';
+                                break;
+                            case 'recharge' :
+                                flow.flowType = '充值';
+                                break;
+                            default:
+                                flow.flowType = '其他';
+                        }
+                    }
+                }
+            }
+        },
+        mounted() {
+            this.loadData();
+        },
+        created() {
+            this.maxHeight = document.body.clientHeight - 150;
+        }
+    })
+</script>
+</html>

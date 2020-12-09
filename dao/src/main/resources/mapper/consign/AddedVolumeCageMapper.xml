@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.AddedVolumeCageMapper">
+    <resultMap id="volumeWithWeightCageMap" type="com.jxywkj.application.pet.model.consign.AddedVolumeCage">
+        <id column="cage_no" property="addedWeightCage.cageNo"/>
+        <result column="cage_name" property="addedWeightCage.cageName"/>
+        <result column="min_weight" property="addedWeightCage.minWeight"/>
+        <result column="max_weight" property="addedWeightCage.maxWeight"/>
+        <result column="cage_weight" property="addedWeightCage.cageWeight"/>
+        <result column="cage_price" property="addedWeightCage.cagePrice"/>
+        <result column="use_volume" property="addedWeightCage.useVolume"/>
+        <result column="use_weight" property="addedWeightCage.useWeight"/>
+        <result column="transport_type" property="addedWeightCage.transportType"/>
+        <result column="starting_retail_price" property="startingRetailPrice"/>
+        <result column="starting_join_price" property="startingJoinPrice"/>
+        <result column="station_no" property="addedWeightCage.station.stationNo"/>
+        <result column="transport_no" property="transport.transportNo"/>
+    </resultMap>
+
+    <select id="listByTransportNo" resultMap="volumeWithWeightCageMap">
+       SELECT
+            a.*, #{transportNo} AS transport_no,
+            b.starting_retail_price,
+            b.starting_join_price
+        FROM
+            t_consign_weight_cage a
+        LEFT JOIN t_consign_volume_cage b ON a.cage_no = b.weight_cage_no
+        AND b.transport_no = #{transportNo}
+        AND EXISTS (
+            SELECT
+                1
+            FROM
+                t_consign_volume_cage
+            WHERE
+                transport_no = #{transportNo}
+        )
+        JOIN t_consign_transport c ON a.transport_type = c.transport_type
+        WHERE
+            c.transport_no = #{transportNo} and a.station_no = #{stationNo};
+    </select>
+
+    <delete id="deleteByTransportNo">
+        DELETE FROM t_consign_volume_cage WHERE transport_no = #{transportNo};
+    </delete>
+
+    <insert id="saveList">
+        INSERT INTO t_consign_volume_cage (weight_cage_no , transport_no , starting_retail_price , starting_join_price)
+        VALUES
+        <foreach collection="addedVolumeCageDtoList" item="cage" close=";" separator=",">
+            (#{cage.addedWeightCage.cageNo} , #{cage.transport.transportNo} , #{cage.startingRetailPrice} ,
+            #{cage.startingJoinPrice})
+        </foreach>
+    </insert>
+</mapper>

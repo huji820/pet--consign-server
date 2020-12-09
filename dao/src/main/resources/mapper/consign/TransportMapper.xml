@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.TransportMapper">
+
+    <resultMap id="transportBaseResultMap" type="com.jxywkj.application.pet.model.consign.Transport">
+        <id column="transport_no" property="transportNo"/>
+        <result column="transport_name" property="transportName"/>
+        <result column="start_city" property="startCity"/>
+        <result column="start_region" property="startRegion"/>
+        <result column="end_city" property="endCity"/>
+        <result column="end_region" property="endRegion"/>
+        <result column="transport_type" property="transportType"/>
+        <result column="starting_retail_price" property="startingRetailPrice"/>
+        <result column="starting_weight" property="startingWeight"/>
+        <result column="starting_retail_price" property="startingRetailPrice"/>
+        <result column="starting_join_price" property="startingJoinPrice"/>
+        <result column="continue_retail_price" property="continueRetailPrice"/>
+        <result column="continue_join_price" property="continueJoinPrice"/>
+        <result column="max_weight" property="maxWeight"/>
+        <result column="city_no" property="cityNo"/>
+        <association property="partner" javaType="com.jxywkj.application.pet.model.consign.Partner">
+            <id column="partner_no" property="partnerNo"/>
+            <result column="partner_name" property="partnerName"/>
+            <result column="contact" property="contact"/>
+            <result column="phone" property="phone"/>
+            <result column="city" property="city"/>
+            <result column="province" property="province"/>
+            <result column="lng" property="lng"/>
+            <result column="lat" property="lat"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="baseTransportBaseResultMap" type="com.jxywkj.application.pet.model.consign.Transport">
+        <id column="transport_no" property="transportNo"/>
+        <result column="transport_name" property="transportName"/>
+        <result column="start_city" property="startCity"/>
+        <result column="start_region" property="startRegion"/>
+        <result column="end_city" property="endCity"/>
+        <result column="end_region" property="endRegion"/>
+        <result column="transport_type" property="transportType"/>
+        <result column="starting_retail_price" property="startingRetailPrice"/>
+        <result column="starting_weight" property="startingWeight"/>
+        <result column="starting_retail_price" property="startingRetailPrice"/>
+        <result column="starting_join_price" property="startingJoinPrice"/>
+        <result column="continue_retail_price" property="continueRetailPrice"/>
+        <result column="continue_join_price" property="continueJoinPrice"/>
+        <result column="max_weight" property="maxWeight"/>
+        <result column="city_no" property="cityNo"/>
+        <result column="partner_no" property="partner.partnerNo"/>
+    </resultMap>
+
+
+    <insert id="insertTransport" parameterType="com.jxywkj.application.pet.model.consign.Transport"
+            useGeneratedKeys="true" keyColumn="transportNo">
+        DELETE
+        FROM t_consign_transport
+        WHERE start_city = #{startCity}
+          AND end_city = #{endCity}
+          AND transport_type = #{transportType};
+        insert into t_consign_transport(transport_name, start_city, start_region, end_city, end_region, transport_type,
+                                        starting_weight, starting_retail_price,
+                                        starting_join_price, continue_retail_price, continue_join_price, max_weight,
+                                        city_no, partner_no)
+        values (#{transportName}, #{startCity}, #{startRegion}, #{endCity}, #{endRegion},
+                #{transportType}, #{startingWeight}, #{startingRetailPrice}, #{startingJoinPrice},
+                #{continueRetailPrice}, #{continueJoinPrice}, #{maxWeight}, #{cityNo}, #{partner.partnerNo});
+    </insert>
+
+    <delete id="deleteTransportByPartnerNo">
+        delete
+        from t_consign_transport
+        where partner_no = #{partnerNo}
+    </delete>
+
+    <delete id="deleteTransport">
+        delete
+        from t_consign_transport
+        where transport_no = #{transportNo}
+    </delete>
+
+    <select id="countTransport" resultType="int">
+        select count(transport_no) from t_consign_transport
+        where city_no =
+          (select `id` from doc_city where `name` =
+            (select city from t_consign_station where station_no = #{stationNo})
+        )
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(endCity)">
+            and end_city like CONCAT('%',#{endCity},'%')
+        </if>
+        <if test="transportType > 0">
+            and transport_type = #{transportType}
+        </if>
+    </select>
+    <!--查询-->
+    <select id="listTransport" resultType="com.jxywkj.application.pet.model.consign.Transport">
+        select transport_no,transport_name,start_city,end_city, starting_weight,
+        starting_retail_price,starting_join_price,max_weight
+        ,continue_retail_price,continue_join_price,city_no,case transport_type
+        when '1' then '专车'
+        when '2' then '铁路'
+        when '3' then '单飞'
+        when '4' then '随机'
+        when '5' then '大巴'
+        end as transport_type from t_consign_transport
+        where city_no =
+          (select `id` from doc_city where `name` =
+            (select city from t_consign_station where station_no = #{stationNo})
+          )
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(endCity)">
+            and end_city like CONCAT('%',#{endCity},'%')
+        </if>
+        <if test="transportType > 0 and transportType !=null">
+            and transport_type = #{transportType}
+        </if>
+        limit #{start}, #{end};
+    </select>
+
+    <update id="updateTransport" parameterType="com.jxywkj.application.pet.model.consign.Transport">
+        update t_consign_transport
+        set starting_retail_price=#{startingRetailPrice},
+            starting_join_price=#{startingJoinPrice},
+            continue_retail_price=#{continueRetailPrice},
+            continue_join_price=#{continueJoinPrice},
+            starting_weight      = #{startingWeight},
+            max_weight=#{maxWeight},
+            transport_name       = #{transportName},
+            transport_type       = #{transportType}
+        where transport_no = #{transportNo}
+    </update>
+    <select id="listStartCity" resultType="string">
+        SELECT start_city
+        FROM t_consign_transport
+        group by start_city;
+    </select>
+    <select id="getStartCityByTransportNo" resultType="String">
+        SELECT start_city
+        FROM t_consign_transport
+        where transport_no = #{transportNo}
+    </select>
+    <select id="listEndCity" resultType="string">
+        SELECT
+        end_city
+        FROM
+        t_consign_transport
+        <where>
+            <if test="startCity != null and startCity != ''">
+                AND start_city = #{startCity}
+            </if>
+            <if test="transportType != 0">
+                AND transport_type = #{transportType}
+            </if>
+        </where>
+        GROUP BY end_city;
+    </select>
+
+    <select id="listTransportByCondition" parameterType="com.jxywkj.application.pet.model.consign.Transport"
+            resultMap="transportBaseResultMap">
+        SELECT * FROM t_consign_transport a
+        LEFT JOIN doc_city b ON a.city_no = b.id
+        LEFT JOIN t_consign_partner c ON a.partner_no = c.partner_no
+        LEFT JOIN t_consign_station d ON b.name = d.city
+        <where>
+            <if test="transport.transportNo != 0">
+                AND a.transport_no = #{transport.transportNo}
+            </if>
+            <if test="transport.startCity != null and transport.startCity != ''">
+                AND a.start_city = #{transport.startCity}
+            </if>
+            <if test="transport.endCity != null and transport.endCity != ''">
+                AND a.end_city = #{transport.endCity}
+            </if>
+            <if test="transport.transportType != null and transport.transportType != ''">
+                AND a.transport_type = #{transport.transportType}
+            </if>
+        </where>
+    </select>
+
+    <select id="getTransportByTransportNo" resultMap="baseTransportBaseResultMap"
+            parameterType="java.lang.Integer">
+        SELECT *
+        FROM t_consign_transport
+        WHERE transport_no = #{transportNo}
+    </select>
+
+    <select id="listTransportType" resultType="java.lang.Integer">
+        SELECT
+        transport_type
+        FROM
+        t_consign_transport
+        <where>
+            <if test="startCity != null and startCity != ''">
+                AND start_city = #{startCity}
+            </if>
+            <if test="endCity != null and endCity != ''">
+                AND end_City = #{endCity}
+            </if>
+        </where>
+        GROUP BY transport_type;
+    </select>
+
+    <select id="listAllTransportNoByStationNo" resultType="java.lang.Integer">
+        SELECT transport_no
+        from t_consign_transport
+        WHERE city_no = #{cityNo};
+    </select>
+
+    <select id="listByStationNoAndTransportType" resultType="java.lang.Integer">
+        SELECT transport_no FROM t_consign_transport WHERE city_no = #{cityNo}
+        <if test="transportType != null and transportType.length > 0">
+            AND transport_type IN
+            <foreach collection="transportType" item="item" open="(" close=");" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="getTransport" resultMap="baseTransportBaseResultMap">
+        SELECT *
+        from t_consign_transport
+        WHERE city_no = #{cityNo}
+          and start_city = #{startCity}
+          and end_city = #{endCity}
+          and transport_type = #{transportType}
+        limit 0, 1;
+    </select>
+
+    <update id="updateTransportMaxWeight">
+        UPDATE t_consign_transport
+        SET max_weight = #{maxWeight}
+        WHERE transport_no = #{transportNo};
+    </update>
+
+    <update id="updateStartWeight">
+        UPDATE t_consign_transport
+        SET starting_weight = #{startWeight}
+        WHERE transport_no = #{transportNo};
+    </update>
+
+    <select id="listByInstance" resultType="com.jxywkj.application.pet.model.consign.Transport">
+        SELECT main.*
+        FROM t_consign_transport main
+                 JOIN (
+            SELECT city_no
+            FROM t_consign_station
+            WHERE ROUND(
+                              6378.138 * 2 * ASIN(
+                                  SQRT(
+                                              POW(
+                                                      SIN(
+                                                                  (
+                                                                      #{lat} * PI() / 180 - lat * PI() / 180
+                                                                      ) / 2
+                                                          ),
+                                                      2
+                                                  ) + COS(#{lat} * PI() / 180) * COS(lat * PI() / 180) * POW(
+                                                  SIN(
+                                                              (
+                                                                  #{lnt} * PI() / 180 - lng * PI() / 180
+                                                                  ) / 2
+                                                      ),
+                                                  2
+                                              )
+                                      )
+                              )
+                      ) > #{distance}) filter ON main.city_no = filter.city_no
+    </select>
+</mapper>

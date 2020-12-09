@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.AddedSendMapper">
+    <resultMap id="baseAddedSend" type="com.jxywkj.application.pet.model.consign.AddedSend">
+        <id column="send_no" property="sendNo"/>
+        <result column="stationNo" property="station.stationNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdateList">
+        DELETE
+        FROM t_consign_added_send
+        WHERE station_no = #{addedSendList[0].station.stationNo};
+        INSERT INTO t_consign_added_send (start_distance,end_distance,price,station_no)
+        VALUES
+        <foreach collection="addedSendList" item="addedSend" separator="," close=";">
+            (#{addedSend.startDistance},#{addedSend.endDistance},#{addedSend.price} , #{addedSend.station.stationNo})
+        </foreach>
+    </insert>
+
+    <select id="listByStationNo" resultMap="baseAddedSend">
+        SELECT send_no, start_distance, end_distance, price, station_no
+        FROM t_consign_added_send
+        WHERE station_no = #{stationNo};
+    </select>
+</mapper>

@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport"/>
+    <meta content="yes" name="apple-mobile-web-app-capable"/>
+    <meta content="black" name="apple-mobile-web-app-status-bar-style"/>
+    <meta content="telephone=no" name="format-detection"/>
+    <!--<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">-->
+    <title>淘宠惠智慧宠物管理平台</title>
+    <link rel="stylesheet" type="text/css" href="/static/js/extjs/ext-theme-classic/build/resources/ext-theme-classic-all.css" />
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/home.css">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/toastr.min.css">
+    <link rel="stylesheet" href="/static/css/_all-skins.css">
+
+    <script src="/static/js/jQuery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/ext-all.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/Parse.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/BigDecimal.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/ext-locale-zh_CN.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/Hzzjm.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/ueditor/ueditor.config.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/ueditor/ueditor.all.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/ueditor/lang/zh-cn/zh-cn.js"></script>
+
+    <script type="text/javascript" src="/static/js/toastr.min.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/Framework.js"></script>
+    <script type="text/javascript" src="/static/js/extjs/extend/ComboTree.js" ></script>
+    <script type="text/javascript" src="/static/js/extjs/extend/PrefixTree.js" ></script>
+
+    <style type="text/css">
+        .ui-btn-sp {
+            padding: 0 16px;
+            background: #00b8ec;
+            font-weight: 700;
+            color: #fff;
+            border: 1px solid #00b8ec;
+        }
+        .ui-btn {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 0 13px;
+            height: 28px;
+            border: 1px solid #c3c7cb;
+            border-radius: 2px;
+            background: #fafdff;
+            font: 14px/2 \5b8b\4f53;
+            color: #555;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        a {
+            cursor: pointer;
+            color: #555;
+            text-decoration: none;
+            outline: none;
+        }
+        .x-boundlist-item {
+            padding: 0 3px;
+            font: normal 12px tahoma, arial, verdana, sans-serif;
+            line-height: 20px;
+            cursor: pointer;
+            cursor: hand;
+            position: relative;
+            /*allow hover in IE on empty items*/
+            border-width: 1px;
+            border-style: dotted;
+            border-color: white; }
+
+
+        .x-boundlist-item-over {
+            background: #dfe8f6;
+            border-color: #a3bae9; }
+
+        .headerBar .leftSide .companyName {
+            font-weight: 100;
+            font-size: 22px;
+            line-height: 36px;
+            margin-right: 10px;
+        }
+
+    </style>
+</head>
+<body id='body' class="hold-transition skin-blue sidebar-mini sidebar-collapse" style="overflow:hidden;">
+<!--  加载等待 -->
+<div id="ajax-loader" style="cursor: progress; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: #fff; z-index: 10000; overflow: hidden;">
+    <img src="/static/images/ajax-loader.gif" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto;" />
+</div>
+<div class="wrapper">
+    <!--头部信息-->
+    <header class="main-header">
+        <a href="#" target="_blank" class="logo" style="line-height: 60px">
+            <span class="logo-mini" style="color: #ffffff;">淘宠惠智慧宠物管理平台</span>
+        </a>
+        <nav class="navbar navbar-static-top">
+            <a class="sidebar-toggles" style="color: #fff; line-height: 30px; font-size: 14px; font-family: 'Microsoft YaHei'">
+                [[${session.manager.managerName}]]，欢迎回来！,您上次登录IP：127.0.0.1,上次登录时间：2019-12-12 12:12:12
+            </a>
+            <div style="float: right;">
+                <div class="navbar-custom-menu">
+                    <ul class="nav navbar-nav">
+                        <li class="dropdown messages-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: #fff; line-height: 30px; font-size: 14px; font-family: 'Microsoft YaHei'">
+                                联系客服
+                            </a>
+                            <ul class="dropdown-menu pull-left">
+                                <li><a href="javascript:void();">电话咨询<div style="color: #a5abb0;"> 0791-88308720</div></a></li>
+                                <li><a href="~/Login/OutLogin">咨询时间<div style="color: #a5abb0;"> 周一-周五</div> <div style="color: #a5abb0;"> 9:00-11:30 14:00-5:30</div><div style="color: #a5abb0;"> 周六 9:00-11:30</div></a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown tasks-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: #fff; line-height: 30px; font-size: 14px; font-family: 'Microsoft YaHei'">
+                                系统帮助
+                            </a>
+                            <ul class="dropdown-menu pull-left">
+                                <!-- <li><a href="javascript:void(0)">新手指引</a></li> -->
+                                <li><a href="~/Login/OutLogin">问题反馈</a></li>
+                                <li><a href="javaScript:void(0)">版本跟新说明<div style="color: #a5abb0;"> 9:00-11:30 14:00-5:30</div><div style="color: #a5abb0;"> 周六 9:00-11:30</div></a></li>
+
+                            </ul>
+                        </li>
+
+                        <li class="dropdown tasks-menu">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" style="color: #fff; line-height: 30px; font-size: 14px; font-family: 'Microsoft YaHei'">
+                                消息提醒
+                            </a>
+                            <ul class="dropdown-menu pull-left">
+                                <!-- <li><a href="javascript:void(0)">新手指引</a></li> -->
+                                <li><a href="~/Login/OutLogin">问题反馈</a></li>
+                                <li><a href="javaScript:void(0)">版本跟新说明<div style="color: #a5abb0;"> 9:00-11:30 14:00-5:30</div><div style="color: #a5abb0;"> 周六 9:00-11:30</div></a></li>
+
+                            </ul>
+                        </li>
+
+                        <li class="dropdown messages-menu">
+                            <a href="/admin/logout" style="color: #fff; line-height: 30px; font-size: 14px; font-family: 'Microsoft YaHei'">
+                                退出登录
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!--左边导航-->
+    <div class="main-sidebar">
+        <!-- 菜单 -->
+        <div class="sidebar">
+            <ul class="sidebar-menu" id="sidebar-menu">
+            </ul>
+        </div>
+        <div class="guide" style="display: block;">
+            <!-- <li><a class="menuItem" data-id="userInfo" href="/SystemManage/User/Info">新手指引<i class="icon-white icon-angle-right"></i></a></li> -->
+        </div>
+    </div>
+    <!--中间内容-->
+    <div id="content-wrapper" class="content-wrapper">
+        <div class="content-iframe" id="content-iframe" style="overflow: hidden;background-color: #f4f4f4;">
+            <div class="mainContent" id="content-main" style="margin: 0px; margin-bottom: 0px; padding: 0;">
+                <iframe class="LRADMS_iframe" id="LRADMS_iframe" width="100%" height="100%" src="/admin/welcome" frameborder="0" data-id="/static/welcome"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/home.js"></script>
+
+<input type="hidden" name="userid" id="UserControlCode" value="${sessionScope.session.UserControlCode}" />
+<input type="hidden" name="username" id="UserControlName" value="${sessionScope.session.UserControlName}" />
+<input type="hidden" name="model" id="model" value="${sessionScope.session.model}" />
+<input type="hidden" name="model" id="range" value="${sessionScope.session.ranges}" />
+
+<input type="hidden" name="model" id="settlementPrice" value="${sessionScope.session.settlementPrice}" />
+<input type="hidden" name="model" id="retailPrice" value="${sessionScope.session.RetailPrice}" />
+<input type="hidden" name="model" id="costPrice" value="${sessionScope.session.costPrice}" />
+<input type="hidden" name="model" id="memberPrice" value="${sessionScope.session.memberPrice}" />
+<input type="hidden" name="model" id="dispatchingPrice" value="${sessionScope.session.dispatchingPrice}" />
+
+<input type="hidden" name="bossCode" id="bossCode" value="${sessionScope.session.bossCode}" />
+<input type="hidden" name="OrganizationCodes" id="OrganizationCodes" value="${sessionScope.session.OrganizationCodes}" />
+
+<div id="waringpanel">
+</div>
+
+<div id="pop" style="display:none;">
+    <style type="text/css">
+        *{margin:0;padding:0;}
+        #pop{background:#fff;width:260px;border:1px solid #e0e0e0;font-size:12px;position: fixed;right:10px;bottom:10px;z-index: 99999999999999}
+        #popHead{line-height:26px;height: 26px;background:#f6f0f3;border-bottom:1px solid #e0e0e0;position:relative;font-size:12px;padding:0 0 0 0px;}
+        #popHead h2{font-size:14px;color:#666;line-height:26px;height:26px;}
+        #popHead #popClose{position:absolute;right:10px;top:1px;}
+        #popHead a#popClose:hover{color:#f00;cursor:pointer;}
+        #popContent{padding:5px 10px;}
+        #popContent li{list-style-type:none;}
+        #popContent a{line-height:24px;font-size:14px;font-family:'微软雅黑';color:#333;font-weight:bold;text-decoration:none;}
+        #popContent a:hover{color:#f60;}
+        #popIntro{text-indent:24px;line-height:160%;margin:5px 0;color:#666;}
+        #popMore{text-align:right;border-top:1px dotted #ccc;line-height:24px;margin:8px 0 0 0;}
+        #popMore a{color:#f60;}
+        #popMore a:hover{color:#f00;}
+        .red-row{
+            color: red;
+        }
+    </style>
+    <div id="popHead">
+        <a id="popClose" title="关闭">关闭</a>
+    </div>
+    <div id="popContent">
+        <dl>
+            <ul>
+            </ul>
+        </dl>
+    </div>
+</div>
+</body>
+</html>

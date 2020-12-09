@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.report.RepoerMapper">
+
+    <select id="getSimpleReportVO" resultType="com.jxywkj.application.pet.model.vo.report.HomeSimpleReportVO">
+          select (select count(10000) from t_consign_station) as stationNum, (select count(customer_no) from t_common_customer) as customerNum, (select count(business_no) from t_business_business) as businessNum
+    </select>
+
+    <select id="listPerformanceVO" resultType="com.jxywkj.application.pet.model.vo.report.HomePerformanceVO">
+        select order_date as day, sum(payment_amount) amount from t_consign_order
+        where order_date &gt;=
+        <if test="dayType == 1">
+            DATE_ADD(now(), INTERVAL  -7 day)
+        </if>
+        <if test="dayType == 2">
+            DATE_ADD(now(), INTERVAL  -1 month)
+        </if>
+        group by order_date
+    </select>
+
+</mapper>

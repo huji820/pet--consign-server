@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.PetGenreMapper">
+
+    <resultMap id="result" type="com.jxywkj.application.pet.model.common.PetGenre">
+        <id column="pet_genre_no" property="petGenreNo"/>
+        <result column="pet_genre_name" property="petGenreName"/>
+        <result column="pet_sort_no" property="petSort.petSortNo"/>
+        <result column="pet_genre_img" property="petGenreImg"/>
+        <result column="pinyin" property="pinyin"/>
+    </resultMap>
+
+    <select id="listAll" resultType="com.jxywkj.application.pet.model.common.PetGenre">
+        SELECT *
+        FROM t_common_pet_genre;
+    </select>
+
+    <select id="listPetClassifyByTypeName" resultType="com.jxywkj.application.pet.model.common.PetGenre">
+        SELECT a.pet_genre_no,
+               a.pet_genre_name,
+               a.pet_sort_no,
+               a.pet_genre_img
+        FROM t_common_pet_genre a
+                 JOIN t_common_pet_sort b ON a.pet_sort_no = b.pet_sort_no
+        WHERE b.pet_sort_name = #{petTypeName};
+    </select>
+
+    <select id="getByClassifyName" resultType="com.jxywkj.application.pet.model.common.PetGenre">
+        SELECT pet_genre_no, pet_genre_name, pet_sort_no, pet_genre_img
+        FROM t_common_pet_genre
+        WHERE pet_genre_name = #{classifyName};
+    </select>
+
+    <select id="listByKeyWord" resultMap="result">
+        SELECT *
+        FROM t_common_pet_genre
+        WHERE pet_genre_name LIKE CONCAT('%', #{keyWord}, '%')
+           OR pinyin LIKE CONCAT(#{keyWord}, '%');
+    </select>
+</mapper>

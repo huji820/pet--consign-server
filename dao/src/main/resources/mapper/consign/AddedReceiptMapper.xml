@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.AddedReceiptMapper">
+    <resultMap id="baseAddedReceipt" type="com.jxywkj.application.pet.model.consign.AddedReceipt">
+        <id column="receipt_no" property="receiptNo"/>
+        <result column="station_no" property="station.stationNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdateList">
+        DELETE FROM t_consign_added_receipt WHERE station_no = #{addedReceiptList[0].station.stationNo};
+        INSERT INTO t_consign_added_receipt (start_distance ,end_distance , price , station_no) VALUES
+        <foreach collection="addedReceiptList" item="addedReceipt" separator="," close=";">
+            (#{addedReceipt.startDistance},
+            #{addedReceipt.endDistance},
+            #{addedReceipt.price},
+            #{addedReceipt.station.stationNo})
+        </foreach>
+
+    </insert>
+
+    <select id="listByStationNo" resultMap="baseAddedReceipt">
+        SELECT receipt_no, start_distance, end_distance, price, station_no
+        FROM t_consign_added_receipt
+        WHERE station_no = #{stationNo};
+    </select>
+</mapper>

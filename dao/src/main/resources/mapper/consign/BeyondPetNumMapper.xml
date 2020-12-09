@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.BeyondPetNumMapper">
+    <resultMap id="beyondPetNumResultMap" type="com.jxywkj.application.pet.model.consign.BeyondPetNum">
+        <result property="station.stationNo" column="station_no"/>
+    </resultMap>
+
+    <select id="getByStationNoAndType" resultMap="beyondPetNumResultMap">
+        SELECT *
+        FROM t_consign_beyond
+        WHERE station_no = #{stationNo}
+          AND transport_type = #{transportType}
+        LIMIT 1;
+    </select>
+
+    <select id="listByStationNo" resultMap="beyondPetNumResultMap">
+        SELECT *
+        FROM t_consign_beyond
+        WHERE station_no = #{stationNo};
+    </select>
+
+    <select id="getByTransportNo" resultMap="beyondPetNumResultMap">
+        SELECT a.*
+        FROM t_consign_beyond a
+                 JOIN (
+            SELECT city_no,transport_type
+            FROM t_consign_transport
+            WHERE transport_no = #{transportNo}
+        ) b ON  a.transport_type = b.transport_type
+        JOIN t_consign_station d ON  a.station_no = d.station_no
+        and a.station_no = #{station.stationNo}
+        LIMIT 1;
+    </select>
+
+    <insert id="saveOrUpdate">
+        DELETE
+        FROM t_consign_beyond
+        WHERE station_no = #{beyondPetNum.station.stationNo}
+          AND transport_type = #{beyondPetNum.transportType};
+        INSERT INTO t_consign_beyond (station_no, transport_type, retail_price, join_price)
+        VALUES (#{beyondPetNum.station.stationNo}, #{beyondPetNum.transportType}, #{beyondPetNum.retailPrice},
+                #{beyondPetNum.joinPrice});
+    </insert>
+
+    <insert id="saveOrUpdateByStation">
+        DELETE FROM t_consign_beyond WHERE station_no = #{beyondPetNumList[0].station.stationNo};
+        INSERT INTO t_consign_beyond (station_no,transport_type,retail_price, join_price) VALUES
+        <foreach collection="beyondPetNumList" item="beyondPetNum" separator="," close=";">
+            (#{beyondPetNum.station.stationNo},#{beyondPetNum.transportType},#{beyondPetNum.retailPrice},
+            #{beyondPetNumList.joinPrice})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByStationNo">
+        DELETE
+        FROM t_consign_beyond
+        WHERE station_no = #{stationNo};
+    </delete>
+</mapper>

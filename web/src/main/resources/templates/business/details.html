@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>工作台 - 基础信息管理</title>
+    <!--引入高德地图-->
+    <script src="https://webapi.amap.com/maps?v=1.4.6&key=85d5e0bd412ecfc92d29e3bdfc4b05e9&plugin=AMap.Geocoder"></script>
+    <!-- 引入样式element -->
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="../../static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="../../static/js/jQuery-2.2.0.min.js"></script>
+    <script src="/static/js/index.js"></script>
+</head>
+<body>
+<div id="app">
+    <el-card class="box-card" style="min-height: 800px">
+        <div slot="header" class="clearfix">
+            <span>基础信息管理</span>
+<!--            <el-button style="float: right;margin-right: 200px; padding: 10px 15px "-->
+<!--                       @click="updataPasswordDialog = true" type="warning">修改密码-->
+<!--            </el-button>-->
+        </div>
+<!--        <el-dialog-->
+<!--                title="修改密码"-->
+<!--                :visible.sync="updataPasswordDialog"-->
+<!--                width="30%"-->
+<!--                center>-->
+<!--            <el-form>-->
+<!--                <el-form-item label="旧密码:">-->
+<!--                    <el-input show-password v-model="oldPassword "></el-input>-->
+<!--                </el-form-item>-->
+<!--                <el-form-item label="新密码:">-->
+<!--                    <el-input show-password v-model="newPassword"></el-input>-->
+<!--                </el-form-item>-->
+<!--                <el-form-item label="确认密码:">-->
+<!--                    <el-input show-password v-model="confirmPassword"></el-input>-->
+<!--                </el-form-item>-->
+<!--            </el-form>-->
+
+<!--            <span slot="footer" class="dialog-footer">-->
+<!--                <el-popover-->
+<!--                        placement="top"-->
+<!--                        width="160"-->
+<!--                        v-model="visible">-->
+<!--                          <p>确认修改密码吗？</p>-->
+<!--                          <div style="text-align: right; margin: 0">-->
+<!--                            <el-button size="mini" type="text" @click="visible = false">取消</el-button>-->
+<!--                            <el-button type="primary" size="mini" @click="updateShjPassWord">确定</el-button>-->
+<!--                          </div>-->
+<!--                          <el-button type="primary" slot="reference">修改</el-button>-->
+<!--                </el-popover>-->
+<!--                <el-button @click="updataPasswordDialog = false">取 消</el-button>-->
+
+<!--  </span>-->
+<!--        </el-dialog>-->
+        <el-row span="5">
+            <el-col :span="3">
+                <div class="block" style="margin-left: 50px; margin-top: 20px;">
+                    <el-image
+                            style="width: 120px;
+                                height: 120px"
+                            :src="url"
+                    ></el-image>
+                </div>
+            </el-col>
+            <el-col :span="12">
+                <div style="margin-left:15px; padding: 10px">
+                    <div style="padding: 6px">
+                        <span> 登录账号:</span><span style="margin-left: 6px">{{business.phone}}</span>
+                     <!--   <el-button style="margin-left: 10px;padding: 2px 2px"
+                                   :type="authenticationState === '已认证' ? 'success' : 'danger'" size="mini ">
+                            {{authenticationState}}
+                        </el-button>-->
+                        <!--  <el-button disable="authenticationState ==='未认证'" style="padding:10px 10px; margin-top: 30px;margin-left: 300px;" type="text" plain @click="openAuthentication=true">
+                              <i class="el-icon-warning"></i>认证中心</el-button>-->
+                    </div>
+                    <div style="padding: 6px">账号ID: <span style="margin-left: 6px">{{business.businessNo}}</span></div>
+                    <div style="padding: 6px">注册时间:<span style="margin-left: 6px">{{business.registrationTime}}</span></div>
+                </div>
+            </el-col>
+        </el-row>
+
+        <el-divider content-position="left"></el-divider>
+        <el-row>
+            <el-col :span="6">
+                <el-form label-width="80px">
+                    <el-form-item label="商户地址">
+                        <el-input id="shjdzh" v-model="business.address">
+                            <!--                            <el-button slot="append" icon="el-icon-search"></el-button>-->
+                            <el-button slot="append" onclick="buttonClick();">
+                                <i style="color: #0e9aef" class="el-icon-location"></i>
+                            </el-button>
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item label="联系电话(登录账号)">
+                        <el-input v-model="business.phone"></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="营业时间">
+                        <el-input v-model="business.businessHours "></el-input>
+                    </el-form-item>
+
+                    <el-form-item label="商店描述">
+                        <el-input type="textarea" v-model="business.businessDescription"></el-input>
+                    </el-form-item>
+                    <el-form-item label="">
+                        <el-button @click="updateDetails">提交</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-col>
+            <el-col :span="10">
+                <el-col style="margin-left: 150px">
+                    <div>
+                        <div id="containerMap" style="width:600px; height:450px">
+                        </div>
+                    </div>
+                </el-col>
+            </el-col>
+
+        </el-row>
+    </el-card>
+</div>
+</body>
+<style>
+    div {
+        font-size: 16px
+    }
+</style>
+<script>
+    var map;
+    //初始化地图插件
+    window.onload = function () {
+        map = new AMap.Map('containerMap');
+        //引入单个插件
+        AMap.plugin('AMap.ToolBar', function () {//异步加载插件
+            var toolbar = new AMap.ToolBar();
+            map.addControl(toolbar);
+        });
+        //引入多个插件
+        AMap.plugin(['AMap.ToolBar', 'AMap.Driving'], function () {//异步同时加载多个插件
+            var toolbar = new AMap.ToolBar();
+            map.addControl(toolbar);
+            var driving = new AMap.Driving();//驾车路线规划
+            driving.search(/*参数*/)
+        });
+
+        // 开启搜索服务
+        // AMap.service('AMap.PlaceSearch',function(){//回调函数
+        //     //实例化PlaceSearch
+        //     placeSearch= new AMap.PlaceSearch({
+        //         pageSize: 1,
+        //         map: map,//显示地图
+        //     });
+        // 开启搜索服务
+        AMap.service('AMap.PlaceSearch', function () {//回调函数
+            //实例化PlaceSearch
+            placeSearch = new AMap.PlaceSearch({
+                pageSize: 1,
+                map: map,//显示地图
+            });
+
+            var shjdzh = document.getElementById("shjdzh").value;
+            //TODO: 使用placeSearch对象调用关键字搜索的功能
+            placeSearch.search(shjdzh);
+            AMap.event.addListener(placeSearch, "markerClick", function (e) {
+                // that.longitude.setValue(e.data.location.lng);
+                // that.latitude.setValue(e.data.location.lat);
+                that.close();
+            });
+        });
+    }
+
+    function buttonClick() {
+        // alert("你点击了按钮哦");
+        // 开启搜索服务
+        AMap.service('AMap.PlaceSearch', function () {//回调函数
+            //实例化PlaceSearch
+            placeSearch = new AMap.PlaceSearch({
+                pageSize: 1,
+                map: map,//显示地图
+            });
+
+            //获取页面绑定id的控件值
+            var shjdzh = document.getElementById("shjdzh").value;
+            //TODO: 使用placeSearch对象调用关键字搜索的功能
+            //填写shjdzh ，控件的值
+            placeSearch.search(shjdzh);
+            AMap.event.addListener(placeSearch, "markerClick", function (e) {
+                // that.longitude.setValue(e.data.location.lng);
+                // that.latitude.setValue(e.data.location.lat);
+                that.close();
+            });
+        });
+    }
+</script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                url:'https://img0.imgtn.bdimg.com/it/u=280342116,1179731994&fm=26&gp=0.jpg',
+                /*TODO 新增页面的弹窗*/
+                insterOrderDialog: false,
+                /*TODO 新增页面的弹窗*/
+                updateOrderDialog: false,
+                /*TODO 页面宽度*/
+                maxHeight: 10,
+                /*TODO 分页*/
+                //初始化时的页码,前往第几页
+                currentPage: 1,
+                //每页显示的数量
+                pageSize: 10,
+                //表格数据总数
+                totalCount: 0,
+                /*TODO 表格数据接收数组*/
+                orderTableData: [],
+                /*TODO 传输对象*/
+                order: {
+                    orderNo: '',
+                    businessNo: '',
+                    staffNo: '',
+                    companyNo: '',
+                    orderDate: '',
+                    orderTime: '',
+                    settlementAmount: '',
+                    payAmount: '',
+                    salesNo: '',
+                    deliveryDate: '',
+                    remark: '',
+                    payState: '',
+                    deliverState: '',
+                    postName: ''
+                },
+
+                business:{
+                    businessNo: '',
+                    businessName: '',
+                    phone: '',
+                    passWord: '',
+                    registrationTime:'',
+                    businessHours:'',
+                    businessDescription:''
+                },
+                /*TODO 传输对象*/
+                staff: {
+                    phone: '',
+                    staffNo: '',
+                    staffName: '',
+                    staffPost: '',
+                    staffSex: '',
+                    pwd: ''
+                },
+                loading: false,
+
+                couponData: [],
+                coupon: {
+                    couponNo: '',
+                    couponName: '',
+                    couponDescription: '',
+                    couponTypeNo: '',
+                    couponState: '',
+                    customerNo: '',
+                    couponUseBusiness: ''
+                }
+            }
+        },
+        methods: {
+            //优惠券的使用
+            useCoupon(coupon) {
+                this.coupon = coupon;
+                if(this.coupon.couponState == '未使用' ){
+                    axios.post('/coupon/cancelCoupon',this.coupon).then((res) => {
+                        if (res.status === 200) {
+                            this.$message({
+                                message: res.data.data,
+                                duration:1500,
+                                type: 'success'
+                            });
+                            this.getCouponData();
+                        } else {
+                            this.$message({
+                                message: '请求失败！',
+                                duration:1500,
+                                type: 'error'
+                            });
+                        }
+                    }).catch((err) => {
+                        this.$message({
+                            message: '请求失败！',
+                            duration:1000,
+                            type: 'error'
+                        });
+                    });
+                }else {
+                    this.$message({
+                        message: '该券已被使用！',
+                        duration:1500,
+                        type: 'warning'
+                    });
+                }
+
+            },
+            //获取优惠券
+            getDetails() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/details').then((res) => {
+                    if (res.status === 200) {
+                        that.business = res.data.data;
+
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            /*TODO 清除对象方法*/
+            cleanOrder() {
+                this.staff.phone = '';
+                this.staff.staffName = '';
+                this.staff.staffPost = '';
+                this.staff.staffSex = '';
+                this.staff.staffNo = '';
+                this.staff.pwd = '';
+            },
+            /*TODO SP:查询请求**/
+            listOrder() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/order', {params: {orderNo: this.order.orderNo}}
+                ).then((res) => {
+                    if (res.status === 200) {
+                        that.orderTableData = res.data.data;
+
+                        //数据总数为数组大小
+                        that.totalCount = that.orderTableData.length;
+                        that.cleanOrder();
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            /*TODO SP:新增的请求**/
+            updateDetails(){
+                axios.post('/details/',
+                  this.business
+                ).then((res) => {
+                    if (res.status === 200) {
+                        this.$message.success("修改成功！");
+
+                    } else {
+                        this.$message.error("新增失败！");
+
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+
+            //TODO 新增的弹窗弹出
+            showStaffInsertDialog() {
+                this.insterOrderDialog = true;
+
+            },
+
+            //TODO 更新弹窗弹出
+            showStaffUpdateDialog(staff) {
+                this.insterOrderDialog = true;
+                this.staff.phone = staff.phone;
+                this.staff.staffName = staff.staffName;
+                this.staff.staffPost = staff.post;
+                this.staff.staffNo = staff.staffNo;
+                this.staff.staffSex = staff.sex;
+            },
+
+            //TODO 分页的单击事件(显示的条数)
+            handleSizeChange(val) {
+                this.pageSize = val;
+                console.log(`每页 ${val} 条`);
+            },
+            //TODO 更新弹窗弹出(当前页)
+            handleCurrentChange(val) {
+                this.currentPage = val;
+                console.log(`当前页: ${val}`);
+            }
+
+        },
+        mounted() {
+            this.getDetails();
+        },
+
+        created() {
+            /* this.listOrder();*/
+            this.maxHeight = document.body.clientHeight - 150;
+        }
+    });
+</script>
+</html>
+

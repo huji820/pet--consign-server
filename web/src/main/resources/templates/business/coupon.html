@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>优惠券核销</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="../../static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        .fit {
+            padding: 0px;
+            margin: 0px;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div>
+        <el-container style="height: 800px; border: 1px solid #eee">
+            <el-container>
+                <el-header style="text-align: left; font-size: 12px;margin-top: 30px">
+                    <div style="width: 400px">
+                        <el-alert
+                                title="请输入优惠券号进行查询"
+                                type="success"
+                                description="已经使用过的优惠券不可以重复使用哦"
+                                show-icon>
+                        </el-alert>
+                    </div>
+
+                </el-header>
+                <el-header style="text-align: left; font-size:12px;margin-top: 10px">
+                    <el-form :inline="true" :model="staff">
+                        <el-form-item label="优惠券编号">
+                            <el-input v-model="coupon.couponNo" placeholder="优惠券编号"></el-input>
+                        </el-form-item>
+                        <!--      <el-form-item label="员工职位">
+                                  <el-input v-model="staff.staffPost" placeholder="员工职位"></el-input>
+                              </el-form-item>-->
+                        <el-form-item>
+                            <el-button size="small" type="primary" @click="getCouponData">查询</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-header>
+
+                <el-main>
+                    <!--TODO SP:数据页面表格-->
+                    <el-table
+                            :data="couponData"
+                            stripe
+                            border
+                            :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                            :cell-style="{'text-align': 'center'}"
+                            :max-height="maxHeight">
+                        <el-table-column
+                                prop="couponNo"
+                                label="优惠券编号"
+                        ></el-table-column>
+                        <el-table-column
+                                prop="couponName"
+                                label="优惠券名称"
+                        ></el-table-column>
+                        <el-table-column
+                                prop="couponDescription"
+                                label="描述"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                                prop="couponState"
+                                label="是否使用"
+                        >
+                            <template slot-scope="scope">
+                                <el-tag
+                                        :type="scope.row.couponState === '未使用' ? 'success' : 'danger'"
+                                        disable-transitions>{{scope.row.couponState}}
+                                </el-tag>
+                            </template>
+                        </el-table-column>
+
+                        <el-table-column
+                                label="操作"
+                                width=300px>
+                            <template slot-scope="scope">
+                                <el-button @click="useCoupon(scope.row)" type="success" size="small">核销使用
+                                </el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!--TODO SP:数据页面表格分页-->
+                    <div style="margin: 0 auto;text-align: center">
+                        <el-pagination
+                                @size-change="handleSizeChange"
+                                @current-change="handleCurrentChange"
+                                :current-page="currentPage"
+                                :page-sizes="[10, 30, 50, 100, 200]"
+                                :page-size="pageSize"
+                                layout="total, sizes, prev, pager, next, jumper"
+                                :total="totalCount">
+                        </el-pagination>
+                    </div>
+                </el-main>
+            </el-container>
+        </el-container>
+
+        <!--TODO SP:修改窗口-->
+        <el-dialog
+                :visible.sync="updateOrderDialog"
+                @closed="cleanOrder"
+                id="consign"
+                width="350px">
+            <el-form ref="form" :model="staff" label-width="80px">
+                <el-input style="width:300px" placeholder="姓名" v-model="staff.staffName">
+                    <template slot="prepend">姓&nbsp;&nbsp;&nbsp;名</template>
+                </el-input>
+                <el-input style="width:300px" placeholder="电话" v-model="staff.phone">
+                    <template slot="prepend">电&nbsp;&nbsp;&nbsp;话</template>
+                </el-input>
+                <el-input style="width:300px" placeholder="性别" v-model="staff.staffSex">
+                    <template slot="prepend">性&nbsp;&nbsp;&nbsp;别</template>
+                </el-input>
+            </el-form>
+            <el-button style="width:300px" type="primary" @click="">确 定</el-button>
+        </el-dialog>
+
+    </div>
+
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="../../static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                /*TODO 新增页面的弹窗*/
+                insterOrderDialog: false,
+                /*TODO 新增页面的弹窗*/
+                updateOrderDialog: false,
+                /*TODO 页面宽度*/
+                maxHeight: 10,
+                /*TODO 分页*/
+                //初始化时的页码,前往第几页
+                currentPage: 1,
+                //每页显示的数量
+                pageSize: 10,
+                //表格数据总数
+                totalCount: 0,
+                /*TODO 表格数据接收数组*/
+                orderTableData: [],
+                /*TODO 传输对象*/
+                order: {
+                    orderNo: '',
+                    businessNo: '',
+                    staffNo: '',
+                    companyNo: '',
+                    orderDate: '',
+                    orderTime: '',
+                    settlementAmount: '',
+                    payAmount: '',
+                    salesNo: '',
+                    deliveryDate: '',
+                    remark: '',
+                    payState: '',
+                    deliverState: '',
+                    postName: ''
+                },
+                /*TODO 传输对象*/
+                staff: {
+                    phone: '',
+                    staffNo: '',
+                    staffName: '',
+                    staffPost: '',
+                    staffSex: '',
+                    pwd: ''
+                },
+                loading: false,
+
+                couponData: [],
+                coupon: {
+                    couponNo: '',
+                    couponName: '',
+                    couponDescription: '',
+                    couponTypeNo: '',
+                    couponState: '',
+                    customerNo: '',
+                    couponUseBusiness: ''
+                }
+            }
+        },
+        methods: {
+            //优惠券的使用
+            useCoupon(coupon) {
+                this.coupon = coupon;
+                if (this.coupon.couponState === '未使用') {
+                    axios.put('/business/coupon/verificationCoupon/' + this.coupon.couponNo).then((res) => {
+                        if (res.status === 200) {
+                            this.$message({
+                                message: res.data.data,
+                                duration: 1500,
+                                type: 'success'
+                            });
+                            this.getCouponData();
+                        } else {
+                            this.$message({
+                                message: '请求失败！',
+                                duration: 1500,
+                                type: 'error'
+                            });
+                        }
+                    }).catch((err) => {
+                        this.$message({
+                            message: '请求失败！',
+                            duration: 1000,
+                            type: 'error'
+                        });
+                    });
+                } else {
+                    this.$message({
+                        message: '该优惠券不可用！',
+                        duration: 1500,
+                        type: 'warning'
+                    });
+                }
+
+            },
+            //获取优惠券
+            getCouponData() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/business/coupon/listByCouponNo', {params: {couponNo: this.coupon.couponNo}}).then((res) => {
+                    if (res.status === 200) {
+                        that.couponData = res.data.data;
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            /*TODO 清除对象方法*/
+            cleanOrder() {
+                this.staff.phone = '';
+                this.staff.staffName = '';
+                this.staff.staffPost = '';
+                this.staff.staffSex = '';
+                this.staff.staffNo = '';
+                this.staff.pwd = '';
+            },
+            /*TODO SP:查询请求**/
+            listOrder() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/order', {params: {orderNo: this.order.orderNo}}
+                ).then((res) => {
+                    if (res.status === 200) {
+                        that.orderTableData = res.data.data;
+
+                        //数据总数为数组大小
+                        that.totalCount = that.orderTableData.length;
+                        that.cleanOrder();
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            /*TODO SP:新增的请求**/
+            insertPost() {
+                axios.post('/consign/post',
+                    "postName=" + this.post.postName
+                ).then((res) => {
+                    if (res.status === 200) {
+                        this.$message.success("新增成功！");
+                        this.insterPostDialog = false;
+                        this.cleanPost();
+                        this.listPost();
+                    } else {
+                        this.$message.error("新增失败！");
+                        this.insterPostDialog = false;
+                        this.listPost();
+                        this.cleanPost();
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                    this.insterPostDialog = false;
+                    this.listPost();
+                    this.cleanPost();
+                });
+            },
+
+            //TODO 新增的弹窗弹出
+            showStaffInsertDialog() {
+                this.insterOrderDialog = true;
+
+            },
+
+            //TODO 更新弹窗弹出
+            showStaffUpdateDialog(staff) {
+                this.insterOrderDialog = true;
+                this.staff.phone = staff.phone;
+                this.staff.staffName = staff.staffName;
+                this.staff.staffPost = staff.post;
+                this.staff.staffNo = staff.staffNo;
+                this.staff.staffSex = staff.sex;
+            },
+
+            //TODO 分页的单击事件(显示的条数)
+            handleSizeChange(val) {
+                this.pageSize = val;
+                console.log(`每页 ${val} 条`);
+            },
+            //TODO 更新弹窗弹出(当前页)
+            handleCurrentChange(val) {
+                this.currentPage = val;
+                console.log(`当前页: ${val}`);
+            }
+
+        },
+        mounted() {
+        },
+
+        created() {
+            /* this.listOrder();*/
+            this.maxHeight = document.body.clientHeight - 150;
+        }
+    });
+</script>
+</html>

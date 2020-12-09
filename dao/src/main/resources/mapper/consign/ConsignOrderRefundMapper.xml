@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignOrderRefundMapper">
+    <resultMap id="consignOrderRefundResultMap" type="com.jxywkj.application.pet.model.consign.ConsignOrderRefund">
+        <id property="refundOrderNo" column="refund_order_no"/>
+        <result property="order.orderNo" column="order_no"/>
+        <result property="orderAmount" column="order_amount"/>
+        <result property="refundAmount" column="refund_amount"/>
+        <result property="serviceFeeAmount" column="service_fee_amount"/>
+        <result property="staff.staffNo" column="staff_no"/>
+        <result property="refundTime" column="refund_time"/>
+        <result property="refundOrderState" column="refund_order_state"/>
+    </resultMap>
+
+    <insert id="save">
+        INSERT INTO t_consign_order_refund (order_no, order_amount, refund_amount, service_fee_amount, staff_no,
+                                            refund_time, refund_order_state, refund_reason)
+        VALUES (#{consignOrderRefund.order.orderNo}, #{consignOrderRefund.orderAmount},
+                #{consignOrderRefund.refundAmount}, #{consignOrderRefund.serviceFeeAmount},
+                #{consignOrderRefund.staff.staffNo}, #{consignOrderRefund.refundTime},
+                #{consignOrderRefund.refundOrderState}, #{consignOrderRefund.refundReason});
+    </insert>
+
+    <select id="listByOrderNo" resultMap="consignOrderRefundResultMap">
+        SELECT *
+        FROM t_consign_order_refund
+        WHERE order_no = #{orderNo};
+    </select>
+
+    <update id="updateOrderState">
+        UPDATE t_consign_order_refund
+        SET refund_order_state = #{state}
+        WHERE refund_order_no = #{refundOrderNo};
+    </update>
+
+</mapper>

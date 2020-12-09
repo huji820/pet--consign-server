@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.PartnerMapper">
+    <resultMap id="Partner" type="com.jxywkj.application.pet.model.consign.Partner">
+        <id  column="partner_no" property="partnerNo"/>
+        <result column="partner_name" property="partnerName"/>
+        <result column="province" property="province"/>
+        <result column="city" property="city"/>
+        <result column="lng" property="lng"/>
+        <result column="lat" property="lat"/>
+        <collection property="partnerContacts" ofType="com.jxywkj.application.pet.model.consign.PartnerContact">
+            <id property="partnerNo" column="partner_no" />
+            <id property="phone" column="phone"/>
+            <result property="contact" column="contact"/>
+        </collection>
+    </resultMap>
+
+    <insert id="insertPartner" parameterType="com.jxywkj.application.pet.model.consign.Partner" useGeneratedKeys="true" keyProperty="partnerNo">
+        insert into t_consign_partner(partner_name, lat, lng, station_no, city, province)
+        values (#{partnerName}, #{lat}, #{lng}, #{station.stationNo}, #{city}, #{province});
+    </insert>
+
+    <insert id="insertPartnerAddress" parameterType="com.jxywkj.application.pet.model.consign.Partner">
+        <selectKey keyProperty="partnerNo" order="AFTER" resultType="java.lang.Integer">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into t_consign_partner(partner_name, lat, lng, station_no, city, province,county)
+        values (#{partnerName}, #{lat}, #{lng}, #{station.stationNo}, #{city}, #{province},#{county});
+    </insert>
+
+    <update id="updatePartner" parameterType="com.jxywkj.application.pet.model.consign.Partner">
+        update t_consign_partner set partner_name= #{partnerName} where partner_no = #{partnerNo};
+        delete from t_consign_partner_contact where partner_no = #{partnerNo};
+        <foreach collection="partnerContacts" item="item">
+            <if test="item.phone > 0">
+                insert into t_consign_partner_contact(partner_no, phone, contact)
+                values (#{partnerNo}, #{item.phone}, #{item.contact});
+            </if>
+        </foreach>
+    </update>
+
+    <delete id="deletePartner" parameterType="com.jxywkj.application.pet.model.consign.Partner">
+        delete from t_consign_partner where partner_no = #{partnerNo};
+    </delete>
+
+    <select id="listPartner" resultType="com.jxywkj.application.pet.model.consign.Partner">
+        select * from t_consign_partner where station_no = #{stationNo}
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(partnerName)">
+          and partner_name like concat('%',#{partnerName} ,'%')
+        </if>
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(province)">
+            and province like concat('%',#{province} ,'%')
+        </if>
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(city)">
+            and city like concat('%',#{city} ,'%')
+        </if>
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(county)">
+            and county like concat('%',#{county} ,'%')
+        </if>
+        limit #{start}, #{end};
+    </select>
+
+    <select id="countPartner" resultType="java.lang.Integer">
+        select count(*) from t_consign_partner where station_no = #{stationNo}
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(partnerName)">
+            and partner_name like concat('%',#{partnerName} ,'%')
+        </if>
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(province)">
+            and province like concat('%',#{province} ,'%')
+        </if>
+        <if test="@com.jxywkj.application.pet.dao.consign.utils.Ognl@isNotEmpty(city)">
+            and city like concat('%',#{city} ,'%')
+        </if>
+    </select>
+
+    <select id="listpartnerContactByPartnerNo"
+            resultMap="Partner">
+        select a.*,b.*  from t_consign_partner a left join t_consign_partner_contact b on  a.partner=b.partner
+        where a.partner = #{partnerNo}
+    </select>
+</mapper>

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderAssignmentMapper">
+    <resultMap id="orderAssignmentMap" type="com.jxywkj.application.pet.model.consign.vo.OrderAssignmentVO">
+        <id property="orderNo" column="order_no"/>
+        <result property="transport.transportNo" column="transport_no"/>
+        <result property="leaveDate" column="leave_date"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="petSort.petSortName" column="pet_type_no"/>
+        <result property="petGenre.petGenreName" column="pet_classify_no"/>
+        <result property="weight" column="weight"/>
+        <result property="num" column="num"/>
+        <result property="finalRetailPrice" column="final_retail_price"/>
+        <result property="finalJoinPrice" column="final_join_price"/>
+        <result property="paymentAmount" column="payment_amount"/>
+        <result property="receiptAddress" column="receipt_address"/>
+        <result property="sendAddress" column="send_address"/>
+        <result property="senderName" column="sender_name"/>
+        <result property="senderPhone" column="sender_phone"/>
+        <result property="receiverName" column="receiver_name"/>
+        <result property="receiverPhone" column="receiver_phone"/>
+        <result property="remarks" column="remarks"/>
+        <result property="state" column="state"/>
+        <result property="giveFood" column="give_food"/>
+        <collection property="staffList" javaType="java.util.List"
+                    ofType="com.jxywkj.application.pet.model.consign.Staff">
+            <id property="staffNo" column="staffNo"/>
+            <result property="sex" column="sex"/>
+            <result property="staffName" column="staff_name"/>
+            <result property="phone" column="phone"/>
+            <result property="state" column="staff_state"/>
+            <result property="post.postNo" column="post_no"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="orderAssignmentStaff" type="com.jxywkj.application.pet.model.consign.OrderAssignment">
+        <id column="assignment_no" property="assignmentNo"/>
+        <result column="order_no" property="order.orderNo"/>
+        <result column="assigment_time" property="assignmentTime"/>
+        <result column="operator_no" property="operator.staffNo"/>
+        <association property="staff" javaType="com.jxywkj.application.pet.model.consign.Staff">
+            <id column="staff_no" property="staffNo"/>
+            <result column="staff_name" property="staffName"/>
+            <result column="role" property="role"/>
+        </association>
+    </resultMap>
+
+    <insert id="saveOrderAssignment" parameterType="com.jxywkj.application.pet.model.consign.OrderAssignment">
+        <if test="orderAssignment.staffList != null">
+            DELETE FROM t_consign_order_assignment WHERE order_no = #{orderAssignment.order.orderNo};
+
+            INSERT INTO t_consign_order_assignment (order_no,assignment_time,operator_no,staff_no)
+            VALUES
+            <foreach collection="orderAssignment.staffList" item="staff" separator=",">
+                (#{orderAssignment.order.orderNo},#{orderAssignment.assignmentTime},
+                #{orderAssignment.operator.staffNo},#{staff.staffNo})
+            </foreach>
+        </if>
+    </insert>
+
+    <select id="listByCityName" resultMap="orderAssignmentMap">
+        SELECT
+            a.*,
+            d.staff_no,
+            d.station_no,
+            d.staff_name,
+            d.phone,
+            d.pwd,
+            d.state as staff_state
+        FROM
+            t_consign_order a
+        LEFT JOIN t_consign_transport b ON a.transport_no = b.transport_no
+        LEFT JOIN t_consign_order_assignment c ON a.order_no = c.order_no
+        LEFT JOIN t_consign_staff d ON c.staff_no = d.staff_no
+        WHERE
+            b.start_city = #{cityName}
+        OR b.end_city = #{cityName}
+    </select>
+
+    <select id="listByOrderNo" resultMap="orderAssignmentStaff">
+        SELECT a.*,b.staff_name,b.role
+        FROM t_consign_order_assignment a
+        LEFT JOIN t_consign_staff b ON a.staff_no = b.staff_no
+        WHERE a.order_no = #{orderNo};
+    </select>
+
+    <select id="listPhoneByOrderNo" resultType="java.lang.String">
+        SELECT
+            phone
+        FROM
+            t_consign_staff a
+        JOIN t_consign_order_assignment b ON a.staff_no = b.staff_no
+        AND b.order_no = #{orderNo};
+    </select>
+
+    <select id="countByOrderNo" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM t_consign_order_assignment WHERE order_no = #{orderNo};
+    </select>
+
+</mapper>

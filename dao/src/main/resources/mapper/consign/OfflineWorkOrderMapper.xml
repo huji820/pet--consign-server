@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OfflineWorkOrderMapper">
+
+    <insert id="insertOfflineWorkOrder" parameterType="com.jxywkj.application.pet.model.consign.OfflineOrder">
+        INSERT INTO t_consign_order (
+        order_no,
+        transport_no,
+        leave_date,
+        order_date,
+        order_time,
+        pet_type_name,
+        pet_classify_name,
+        weight,
+        num,
+        final_retail_price,
+        final_join_price,
+        payment_amount,
+        cage_name,
+        cage_price,
+        pet_amount,
+        insure_amount,
+        insure_rate,
+        receipt_address,
+        receipt_distance,
+        receipt_amount,
+        send_address,
+        send_distance,
+        send_amount,
+        sender_name,
+        sender_phone,
+        receiver_name,
+        receiver_phone,
+        remarks,
+        state,
+        customer_no,
+        give_food,
+        share_open_id,
+        pet_age,
+        receipt_longitude,
+        receipt_latitude,
+        send_longitude,
+        send_latitude,
+        out_trade_no,
+        transfer_fee,
+        collection,
+        offline_work_order_no,
+        recommend_name,
+        recommend_phone,
+        pay_amount_type,
+        station_no
+        )
+        VALUES
+        (
+        #{order.orderNo},
+        #{order.transport.transportNo},
+        #{order.leaveDate},
+        #{order.orderDate},
+        #{order.orderTime},
+        #{order.petSort.petSortName},
+        #{order.petGenre.petGenreName},
+        #{order.weight},
+        #{order.num},
+        #{order.finalRetailPrice},
+        #{order.finalJoinPrice},
+        #{order.paymentAmount},
+        <choose>
+            <when test="order.addedWeightCage != null">
+                #{order.addedWeightCage.cageName},
+                #{order.addedWeightCage.cagePrice},
+            </when>
+            <otherwise>
+                null,
+                null,
+            </otherwise>
+        </choose>
+        #{order.petAmount},
+        <choose>
+            <when test="order.addedInsure != null">
+                #{order.addedInsure.insureAmount},
+                #{order.addedInsure.rate},
+            </when>
+            <otherwise>
+                null,null,
+            </otherwise>
+        </choose>
+        #{order.receiptAddress},
+        #{order.receiptDistance},
+        #{order.receiptAmount},
+        #{order.sendAddress},
+        #{order.sendDistance},
+        #{order.sendAmount},
+        #{order.senderName},
+        #{order.senderPhone},
+        #{order.receiverName},
+        #{order.receiverPhone},
+        #{order.remarks},
+        #{order.state},
+        #{order.customerNo},
+        #{order.giveFood},
+        #{order.shareOpenId},
+        #{order.petAge},
+        #{order.receiptLongitude},
+        #{order.receiptLatitude},
+        #{order.sendLongitude},
+        #{order.sendLatitude},
+        #{order.outTradeNo},
+        #{order.TransferFee},
+        #{order.Collection},
+        #{order.OfflineWorkOrderNo},
+        #{order.recommendName},
+        #{order.recommendPhone},
+        #{order.payAmountType},
+        #{order.station.stationNo}
+        );
+    </insert>
+
+    <select id="getOfflineWorkOrderPrice" resultType="java.lang.Integer">
+        SELECT payment_amount FROM t_consign_order WHERE order_no = #{orderNo} AND offline_work_order_no = '1'
+    </select>
+
+</mapper>

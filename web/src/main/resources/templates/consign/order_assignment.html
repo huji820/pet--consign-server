@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-main style="margin: 0; padding: 0">
+            <el-table
+                    :data="table.data"
+                    tooltip-effect="dark"
+                    style="width: 100%"
+                    stripe
+                    :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                    :cell-style="{'text-align': 'center'}"
+                    :max-height="maxHeight"
+            >
+                <el-table-column
+                        type="selection"
+                        width="55">
+                </el-table-column>
+                <el-table-column
+                        label="订单单号"
+                        prop="orderNo">
+                </el-table-column>
+
+                <el-table-column
+                        label="订单日期"
+                        prop="orderDate">
+                </el-table-column>
+
+                <el-table-column
+                        label="订单时间"
+                        prop="orderTime">
+                </el-table-column>
+
+                <el-table-column
+                        label="出发日期"
+                        prop="leaveDate">
+                </el-table-column>
+
+                <el-table-column
+                        label="订单状态"
+                        prop="state">
+                </el-table-column>
+
+                <el-table-column
+                        label="是否上门接宠"
+                >
+                    <template scope="scope">
+                        <p> {{ scope.row.receiptAddress == null ? '否' : '是' }}</p>
+                    </template>
+                </el-table-column>
+
+                <el-table-column
+                        label="是否送宠上门"
+                >
+                    <template scope="scope">
+                        <p> {{ scope.row.sendAddress == null ? '否' : '是' }}</p>
+                    </template>
+                </el-table-column>
+
+
+                <el-table-column
+                        label="订单金额"
+                        prop="paymentAmount">
+                </el-table-column>
+
+                <el-table-column
+                        label="分配状态"
+                        prop="">
+                    <template scope="scope">
+                        <p> {{ scope.row.staffList == null || scope.row.staffList.length === 0 ? '未分配' : '已分配' }}</p>
+                    </template>
+                </el-table-column>
+
+                <el-table-column
+                        label="已分配人员"
+                        prop="">
+                    <template scope="scope">
+                        <p><span v-for="staff,index in scope.row.staffList">
+                            {{staff.staffName}}{{index === scope.row.staffList.length - 1 ? '' : ','}}
+                        </span>
+                        </p>
+                    </template>
+                </el-table-column>
+
+                <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="100">
+                    <template slot-scope="scope">
+                        <el-button @click="assignmentClickAction(scope.row)" type="primary" size="small">分配</el-button>
+                    </template>
+                </el-table-column>
+
+            </el-table>
+        </el-main>
+    </el-container>
+
+    <!-- 弹出框 -->
+    <el-dialog title="分配员工" :visible.sync="dialog.selectStaff">
+        <el-form :model="assignmentFrom">
+            <el-form-item label="员工">
+                <el-select
+                        v-model="assignmentFrom.selectedStaffList"
+                        multiple
+                        filterable
+                        allow-create
+                        default-first-option
+                        placeholder="请选择员工">
+                    <el-option
+                            v-for="item in staff.allStaffList"
+                            :key="item.staffNo"
+                            :label="item.staffName"
+                            :value="item.staffNo">
+                    </el-option>
+                </el-select>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialog.selectStaff = false">取 消</el-button>
+            <el-button type="primary" @click="uploadData">确 定</el-button>
+        </div>
+    </el-dialog>
+
+</div>
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                maxHeight: 0,
+                table: {
+                    data: []
+                },
+                staff: {
+                    allStaffList: []
+                },
+                dialog: {
+                    selectStaff: false
+                },
+                assignmentFrom: {
+                    selectedStaffList: [],
+                    selectedOrder: {}
+                }
+            }
+        },
+        methods: {
+            getAllData() {
+                axios.get('/consign/orderAssignment/listAll').then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.table.data = res.data.data;
+                    } else {
+                        this.$message.error("请求失败！")
+                    }
+                }).catch(err => {
+                    this.$message.error("请求失败！")
+                });
+            },
+            assignmentClickAction(param) {
+                this.assignmentFrom.selectedOrder = param;
+                this.dialog.selectStaff = true;
+            },
+            getAllStaff() {
+                axios.get('/consign/staff/listByStation').then(res => {
+                    if (res.status === 200) {
+                        this.staff.allStaffList = res.data.data;
+                    } else {
+                        this.$message.error("获取员工列表失败！");
+                    }
+                }).catch(err => {
+                    this.$message.error("获取员工列表失败！");
+                });
+            },
+            uploadData() {
+                axios.post('/consign/orderAssignment/save',
+                    {
+                        'orderNo': this.assignmentFrom.selectedOrder.orderNo,
+                        'staffNo': this.assignmentFrom.selectedStaffList
+                    }
+                ).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.$message({
+                            message: '分配成功！',
+                            type: 'success'
+                        });
+                        this.getAllData();
+                    } else {
+                        this.$message.error("分配失败！");
+                    }
+                }).catch(err => {
+                    this.$message.error("分配失败！");
+                });
+                this.dialog.selectStaff = false;
+                this.assignmentFrom.selectedStaffList = [];
+                this.assignmentFrom.selectedOrder = {};
+            }
+        },
+        mounted() {
+            this.getAllData();
+            this.getAllStaff();
+        },
+        created() {
+            this.maxHeight = document.body.clientHeight - 80;
+        }
+
+    });
+</script>

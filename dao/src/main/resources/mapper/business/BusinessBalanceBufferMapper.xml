@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.BusinessBalanceBufferMapper">
+    <insert id="save">
+        INSERT INTO t_business_balance_buffer (business_no, bill_type, bill_no, amount)
+        VALUES (#{businessBalanceBuffer.business.businessNo}, #{businessBalanceBuffer.billType},
+                #{businessBalanceBuffer.billNo}, #{businessBalanceBuffer.amount});
+    </insert>
+
+    <delete id="delete">
+        DELETE
+        FROM t_business_balance_buffer
+        WHERE bill_no = #{billNo};
+    </delete>
+
+    <select id="getTotalByBusinessNo" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(amount), 0)
+        FROM t_business_balance_buffer
+        WHERE business_no = #{businessNo};
+    </select>
+</mapper>

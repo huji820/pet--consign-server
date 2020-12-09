@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-head style="margin-top: 10px">
+            <el-form :inline="true" :model="queryData" class="demo-form-inline">
+                <el-form-item label="订单编号">
+                    <el-input v-model="queryData.orderNo" placeholder="订单编号"></el-input>
+                </el-form-item>
+                <el-form-item label="订单状态">
+                    <el-select v-model="queryData.orderState" placeholder="订单状态">
+                        <el-option label="待付款" value="待付款"></el-option>
+                        <el-option label="待发货" value="待发货"></el-option>
+                        <el-option label="待收货" value="待收货"></el-option>
+                        <el-option label="已完成" value="已完成"></el-option>
+                        <el-option label="已退款" value="已退款"></el-option>
+                        <el-option label="已取消" value="已取消"></el-option>
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="发件人电话">
+                    <el-input v-model="queryData.senderPhone" placeholder="发件人电话"></el-input>
+                </el-form-item>
+                <el-form-item label="收件人电话">
+                    <el-input v-model="queryData.receiverPhone" placeholder="收件人电话"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="resetQueryData" plain>重置</el-button>
+                    <el-button type="primary" @click="loadData">查询</el-button>
+                </el-form-item>
+            </el-form>
+        </el-head>
+        <el-main style="margin: 0; padding: 0">
+            <el-table
+                    :data="orderTableData"
+                    stripe
+                    border
+                    :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                    :cell-style="{'text-align': 'center'}"
+            >
+                <el-table-column
+                        fixed="left"
+                        prop="orderNo"
+                        label="订单编号"
+                        width="130">
+                </el-table-column>
+                <el-table-column
+                        fixed="left"
+                        prop="transport.transportName"
+                        label="运输路线"
+                        width="120">
+                </el-table-column>
+                <el-table-column
+                        prop="leaveDate"
+                        label="出发日期"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="orderDate"
+                        label="下单日期"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="orderTime"
+                        label="下单时间"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="petSort.petTypeName"
+                        label="类别"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="petGenre.petClassifyName"
+                        label="种类"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="weight"
+                        label="重量"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="num"
+                        label="数量"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="finalJoinPrice"
+                        label="底价"
+                        width="60">
+                </el-table-column>
+                <el-table-column
+                        prop="paymentAmount"
+                        label="付款金额"
+                        width="60">
+                </el-table-column>
+                <el-table-column
+                        prop="premiumTotal"
+                        label="补价总计"
+                        width="60">
+                </el-table-column>
+                <el-table-column
+                        prop="addedWeightCage.cageName"
+                        label="笼具"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="addedWeightCage.cagePrice"
+                        label="笼具花费"
+                        width="60">
+                </el-table-column>
+                <el-table-column
+                        prop="addedInsure.insureAmount"
+                        label="保价"
+                        width="60">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptAddress"
+                        label="接宠地址"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptDistance"
+                        label="接宠距离"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptAmount"
+                        label="接宠花费"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="sendAddress"
+                        label="送宠地址"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="sendDistance"
+                        label="送宠距离"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="sendAmount"
+                        label="送宠花费"
+                        width="50">
+                </el-table-column>
+                <el-table-column
+                        prop="senderName"
+                        label="寄件人"
+                        fixed="right"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="senderPhone"
+                        label="寄件人电话"
+                        fixed="right"
+                        width="120">
+                </el-table-column>
+                <el-table-column
+                        prop="receiverName"
+                        label="收件人"
+                        fixed="right"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="receiverPhone"
+                        label="收件人电话"
+                        fixed="right"
+                        width="120">
+                </el-table-column>
+                <el-table-column
+                        prop="remarks"
+                        label="订单备注"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="state"
+                        fixed="right"
+                        label="状态"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="state"
+                        fixed="right"
+                        label="操作"
+                        width="120">
+                    <template slot-scope="scope">
+                        <el-button
+                                size="mini"
+                                @click="showFlowAction(scope.row.orderNo)">相关流水
+                        </el-button>
+                    </template>
+                </el-table-column>
+
+            </el-table>
+
+        </el-main>
+        <!-- 分页插件 -->
+        <el-footer>
+            <div style="text-align:  center">
+                <el-pagination
+                        @size-change="loadData"
+                        @current-change="changePageIndex"
+                        :page-size="pagination.pageSize"
+                        :current-page="pagination.pageIndex"
+                        background
+                        layout="prev, pager, next"
+                        :total="tableTotalCount">
+                </el-pagination>
+            </div>
+        </el-footer>
+    </el-container>
+
+    <!-- dialog -->
+    <el-dialog title="订单流水" :visible.sync="dialogTrend.visible">
+        <el-table :data="dialogTrend.tableData">
+            <el-table-column property="flowNo" label="流水单号" width="150"></el-table-column>
+            <el-table-column property="dateTime" label="时间" width="200"></el-table-column>
+            <el-table-column property="flowType" label="流水类型"></el-table-column>
+            <el-table-column property="flowAmount" label="流水金额"></el-table-column>
+            <el-table-column property="linkNo" label="相关单号"></el-table-column>
+            <el-table-column property="stationName" label="站点名称"></el-table-column>
+            <el-table-column property="businessName" label="商家名称"></el-table-column>
+        </el-table>
+    </el-dialog>
+</div>
+
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                /**查询form*/
+                queryData: {
+                    orderNo: '',
+                    orderState: '',
+                    senderPhone: '',
+                    receiverPhone: '',
+                    offset: 0,
+                    limit: 10
+                },
+                pagination: {
+                    pageSize: 10,
+                    pageIndex: 1,
+                },
+                /**表格对象数据*/
+                orderTableData: [],
+                /**数据总条数*/
+                tableTotalCount: 0,
+                /**dialog*/
+                dialogTrend: {
+                    visible: false,
+                    tableData: []
+                }
+            }
+        },
+        computed: {},
+        methods: {
+            /**页面change事件*/
+            changePageIndex(index) {
+                this.pagination.pageIndex = index;
+                this.loadData();
+            },
+            /**加载数据方法*/
+            loadData() {
+                this.queryData.offset = (this.pagination.pageIndex - 1) * this.pagination.pageSize;
+                this.queryData.limit = this.pagination.pageSize;
+                axios.get("/consign/order-trend", {
+                    params: {
+                        params: JSON.stringify(this.queryData)
+                    }
+                }).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.orderTableData = res.data.data.root;
+                        this.tableTotalCount = res.data.data.totalCount;
+                    } else {
+                        this.$message.error(res.data.data);
+                    }
+                }).catch(err => {
+                    this.$message.error("请求失败！");
+                })
+            },
+            /**清空查询参数*/
+            resetQueryData() {
+                this.queryData.orderNo = '';
+                this.queryData.orderState = '';
+                this.queryData.senderPhone = '';
+                this.queryData.receiverPhone = '';
+            },
+            /**显示流水事件*/
+            showFlowAction(orderNo) {
+                this.dialogTrend.visible = true;
+                this.orderAmountTrend(orderNo);
+            },
+            /**获取订单流水*/
+            orderAmountTrend(orderNo) {
+                axios.get('/api/order/flow/trend/order-no', {params: {'orderNo': orderNo}}).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        for (let i = 0; i < res.data.data.length; i++) {
+                            res.data.data[i].flowType = this.filterFlowType(res.data.data[i].flowType)
+                        }
+                        this.dialogTrend.tableData = res.data.data;
+                    } else {
+                        this.$message.error("获取订单流水失败！");
+                    }
+                }).catch(err => {
+                    this.$message.error("获取订单流水失败！");
+                });
+            },
+            /**过滤流水类型*/
+            filterFlowType(flowType) {
+                switch (flowType) {
+                    case 'orderStation' :
+                        return '站点所得';
+                    case 'orderRebate' :
+                        return '下单返利';
+                    case 'withdrawConfirm' :
+                        return '提现';
+                    case 'withdrawReject' :
+                        return '提现驳回';
+                    case 'orderPremium' :
+                        return '订单补差价';
+                    case 'orderRefund' :
+                        return '订单退款';
+                    case 'orderInsure' :
+                        return '订单投保';
+                    case 'recharge' :
+                        return '充值';
+                    default:
+                        return '其他';
+                }
+            }
+
+        },
+        created() {
+            this.loadData();
+        }
+    });
+</script>

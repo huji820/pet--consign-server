@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.AddedInsureMapper">
+    <resultMap id="addedInsure" type="com.jxywkj.application.pet.model.consign.AddedInsure">
+        <id column="insure_no" property="insureNo"/>
+        <result column="rate" property="rate"/>
+        <result column="station_no" property="station.stationNo"/>
+    </resultMap>
+
+    <select id="getByStationNo" parameterType="int" resultMap="addedInsure">
+        SELECT * FROM t_consign_added_insure WHERE station_no = #{stationNo};
+    </select>
+
+    <update id="update" parameterType="com.jxywkj.application.pet.model.consign.AddedInsure">
+        UPDATE SET t_consign_added_insure
+        rate = #{addedInsure.rate}
+        WHERE insure_no = #{addedInsure.insureNo}
+        AND station_no = #{addedInsure.station.stationNo};
+    </update>
+</mapper>

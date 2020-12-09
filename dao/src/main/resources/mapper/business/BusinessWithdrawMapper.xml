@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.BusinessWithdrawMapper">
+    <resultMap id="baseBusinessWithdraw" type="com.jxywkj.application.pet.model.business.BusinessWithdraw">
+        <result property="business.businessNo" column="business_no"/>
+        <result property="withdrawTime" column="withdraw_time"/>
+        <result property="amount" column="amount"/>
+        <result property="state" column="state"/>
+        <result property="business.businessNo" column="business_no"/>
+        <result property="business.businessName" column="business_name"/>
+    </resultMap>
+
+    <insert id="save">
+        INSERT INTO t_business_withdraw (`withdraw_no`, `withdraw_time`, `business_no`, `amount`, `state`)
+        VALUES (#{businessWithdraw.withdrawNo}, #{businessWithdraw.withdrawTime},
+                #{businessWithdraw.business.businessNo}, #{businessWithdraw.amount}, #{businessWithdraw.state});
+    </insert>
+
+    <update id="updateState">
+        UPDATE t_business_withdraw
+        SET `state` = #{state}
+        WHERE `withdraw_no` = #{withdrawNo};
+    </update>
+
+    <select id="getByWithdrawNo" resultMap="baseBusinessWithdraw">
+        SELECT *
+        FROM t_business_withdraw
+        WHERE withdraw_no = #{withdrawNo};
+    </select>
+
+    <select id="listByBusinessNo" resultMap="baseBusinessWithdraw">
+        SELECT *
+        FROM t_business_withdraw
+        WHERE business_no = #{businessNo}
+        LIMIT #{offset} , #{limit};
+    </select>
+
+
+    <select id="countBusinessWithdraw" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM t_business_withdraw a
+        WHERE 1=1
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(withdrawNo)">
+            and a.withdraw_no = #{withdrawNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(businessNo)">
+            and a.business_no = #{businessNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and a.withdraw_time &gt;= #{startDate}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and a.withdraw_time &lt;= concat(#{endDate}, ' 23:59:59')
+        </if>
+    </select>
+
+    <select id="listBusinessWithdraw" resultMap="baseBusinessWithdraw">
+        SELECT concat(a.withdraw_date, ' ', a.withdraw_time) as withdraw_time, a.*, b.business_name
+        FROM t_business_withdraw a
+        join t_business_business b on a.business_no = b.business_no
+        <where>
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(withdrawNo)">
+                and a.withdraw_no = #{withdrawNo}
+            </if>
+
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(businessNo)">
+                and a.business_no = #{businessNo}
+            </if>
+
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+                and a.withdraw_time &gt;= #{startDate}
+            </if>
+
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+                and a.withdraw_time &lt;= concat(#{endDate}, ' 23:59:59')
+            </if>
+        </where>
+        ORDER BY a.state desc, concat(a.withdraw_date, ' ', a.withdraw_time) desc
+        LIMIT #{start} , #{end};
+    </select>
+</mapper>

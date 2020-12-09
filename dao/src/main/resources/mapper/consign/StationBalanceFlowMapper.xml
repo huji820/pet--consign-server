@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationBalanceFlowMapper">
+    <resultMap id="baseStationBalanceFlowVo" type="com.jxywkj.application.pet.model.consign.vo.StationBalanceFlowVo">
+        <id column="flow_no" property="flowNo"/>
+        <result column="station_no" property="station.stationNo"/>
+        <result column="date_time" property="dateTime"/>
+        <result column="flow_type" property="flowType"/>
+        <result column="flow_amount" property="flowAmount"/>
+        <result column="balance" property="balance"/>
+        <result column="link_no" property="linkNo"/>
+        <result column="bill_no" property="billNo"/>
+
+        <association property="consignInsureFlow" javaType="com.jxywkj.application.pet.model.consign.ConsignInsureFlow">
+            <id column="insure_insure_no" property="insureNo"/>
+            <result column="insure_order_no" property="order.orderNo"/>
+            <result column="insure_date_time" property="dateTime"/>
+            <result column="insure_spend_amount" property="spendAmount"/>
+            <result column="insure_insure_amount" property="insureAmount"/>
+        </association>
+
+        <collection property="stationBalanceFlowList"
+                    ofType="com.jxywkj.application.pet.model.consign.StationBalanceFlow">
+            <id column="station_flow_no" property="flowNo"/>
+            <result column="station_station_no" property="station.stationNo"/>
+            <result column="station_station_name" property="station.stationName"/>
+            <result column="station_date_time" property="dateTime"/>
+            <result column="station_flow_type" property="flowType"/>
+            <result column="station_flow_amount" property="flowAmount"/>
+            <result column="station_link_no" property="linkNo"/>
+            <result column="station_bill_no" property="billNo"/>
+        </collection>
+
+        <collection property="businessBalanceFlowList"
+                    ofType="com.jxywkj.application.pet.model.business.BusinessBalanceFlow">
+            <id column="business_flow_no" property="flowNo"/>
+            <result column="business_business_no" property="business.businessNo"/>
+            <result column="business_business_name" property="business.businessName"/>
+            <result column="business_date_time" property="dateTime"/>
+            <result column="business_flow_type" property="flowType"/>
+            <result column="business_flow_amount" property="flowAmount"/>
+            <result column="business_link_no" property="linkNo"/>
+            <result column="business_bill_no" property="billNo"/>
+        </collection>
+    </resultMap>
+
+    <insert id="save">
+        INSERT INTO t_station_balance_flow(`station_no`, `date_time`, `flow_type`, `flow_amount`, `balance`, `bill_no`,
+                                           `link_no`)
+        VALUES (#{stationBalanceFlow.station.stationNo}, #{stationBalanceFlow.dateTime},
+                #{stationBalanceFlow.flowType}, #{stationBalanceFlow.flowAmount}, #{stationBalanceFlow.balance},
+                #{stationBalanceFlow.billNo}, #{stationBalanceFlow.linkNo});
+    </insert>
+
+    <select id="listStationFlow" resultMap="baseStationBalanceFlowVo">
+        SELECT
+        a.flow_no,
+        a.station_no,
+        a.date_time,
+        a.flow_type,
+        a.flow_amount,
+        a.balance,
+        a.link_no,
+        a.bill_no,
+        b.flow_no AS station_flow_no,
+        b.station_no AS station_station_no,
+        e.station_name AS station_station_name,
+        b.date_time AS station_date_time,
+        b.flow_type AS station_flow_type,
+        b.flow_amount AS station_flow_amount,
+        b.link_no AS station_link_no,
+        b.bill_no AS station_bill_no,
+        c.flow_no AS business_flow_no,
+        c.business_no AS business_business_no,
+        f.business_name AS business_business_name,
+        c.date_time AS business_date_time,
+        c.flow_type AS business_flow_type,
+        c.flow_amount AS business_flow_amount,
+        c.link_no AS business_link_no,
+        c.bill_no AS business_bill_no,
+        d.insure_no AS insure_insure_no,
+        d.order_no AS insure_order_no,
+        d.date_time AS insure_date_time,
+        d.spend_amount AS insure_spend_amount,
+        d.insure_amount AS insure_insure_amount
+        FROM t_station_balance_flow a
+        LEFT JOIN t_station_balance_flow b ON a.bill_no = b.bill_no AND a.flow_no != b.flow_no
+        LEFT JOIN t_business_balance_flow c ON a.bill_no = c.bill_no
+        LEFT JOIN t_consign_insure_flow d ON a.bill_no = d.order_no
+        LEFT JOIN t_consign_station e ON b.station_no = e.station_no
+        LEFT JOIN t_business_business f ON c.business_no = f.business_no
+        JOIN (
+        SELECT flow_no
+        FROM t_station_balance_flow
+        WHERE station_no = #{station.stationNo}
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and date_time &gt;= #{startDate}
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and date_time &lt;= #{endDate}
+        </if>
+        ORDER BY date_time DESC
+        LIMIT #{start} , #{limit}
+        ) filter ON a.flow_no = filter.flow_no
+    </select>
+
+    <select id="countStationFlow" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM t_station_balance_flow
+        WHERE station_no = #{station.stationNo}
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and date_time &gt;= #{startDate}
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and date_time &lt;= #{endDate}
+        </if>
+        ORDER BY date_time DESC
+    </select>
+</mapper>

@@ -1,0 +1,306 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationMapper">
+    <resultMap id="station" type="com.jxywkj.application.pet.model.consign.Station">
+        <id property="stationNo" column="station_no"/>
+        <result property="stationName" column="station_name"/>
+        <result property="servicePhone" column="service_phone"/>
+        <result property="province" column="province"/>
+        <result property="city" column="city"/>
+        <result property="lng" column="lng"/>
+        <result property="lat" column="lat"/>
+        <result property="contact" column="contact"/>
+        <result property="phone" column="phone"/>
+        <result property="address" column="address"/>
+        <result property="openId" column="openId"/>
+        <result property="stationLicenseImage" column="station_license_image"/>
+        <result property="idcardFrontImage" column="idcard_front_image"/>
+        <result property="idcardBackImage" column="idcard_back_image"/>
+        <result property="intoDate" column="into_date"/>
+        <result property="state" column="state"/>
+        <result property="collectionQRCode" column="collection_QR_code"/>
+        <collection property="transports" ofType="com.jxywkj.application.pet.model.consign.Transport">
+            <id property="transportNo" column="transport_no"/>
+            <result property="startCity" column="start_city"/>
+            <result property="endCity" column="end_city"/>
+            <result property="transportName" column="transport_name"/>
+            <result property="transportType" column="transport_type"/>
+            <result property="startingWeight" column="starting_weight"/>
+            <result property="startingRetailPrice" column="starting_retail_price"/>
+            <result property="startingJoinPrice" column="starting_join_price"/>
+            <result property="continueRetailPrice" column="continue_retail_price"/>
+            <result property="continueJoinPrice" column="continue_join_price"/>
+        </collection>
+        <collection property="partners" ofType="com.jxywkj.application.pet.model.consign.Partner">
+            <id property="partnerNo" column="partner_no"/>
+            <result property="partnerName" column="partner_name"/>
+            <result property="lat" column="partner_lat"/>
+            <result property="lng" column="partner_lng"/>
+            <collection property="partnerContacts" ofType="com.jxywkj.application.pet.model.consign.PartnerContact">
+                <id property="partnerNo" column="contact_partner_no"/>
+                <id property="phone" column="contact_phone"/>
+                <result property="contact" column="contact_name"/>
+            </collection>
+        </collection>
+
+    </resultMap>
+
+    <update id="uploadCollectionQRCode">
+        update t_consign_station
+        set collection_QR_code = #{collectionQRCode}
+        where station_no = #{stationNo}
+    </update>
+
+    <update id="updateStation" parameterType="com.jxywkj.application.pet.model.consign.Station">
+        update t_consign_station
+        set contact      = #{contact},
+            province=#{province},
+            city=#{city},
+            phone        = #{phone},
+            address      = #{address},
+            station_name = #{stationName},
+            service_phone= #{servicePhone},
+            lat=#{lat},
+            lng          = #{lng}
+        where station_no = #{stationNo}
+    </update>
+
+    <delete id="deleteStation">
+        <foreach collection="stations" item="item">
+            delete from t_consign_station where station_no = #{item.stationNo};
+
+            delete from t_consign_staff where station_no = #{item.stationNo};
+        </foreach>
+    </delete>
+
+    <select id="getStation" resultMap="station">
+        SELECT a.*,
+               b.transport_no,
+               b.start_city,
+               b.end_city,
+               b.transport_name,
+               b.transport_type,
+               b.starting_weight,
+               b.starting_retail_price,
+               b.starting_join_price,
+               b.continue_retail_price,
+               b.continue_join_price,
+               c.partner_no,
+               c.partner_name,
+               c.lat        AS partner_lat,
+               c.lng        AS partner_lng,
+               d.partner_no as contact_partner_no,
+               d.contact    AS contact_name,
+               d.phone      AS contact_phone
+        FROM t_consign_station a
+                 LEFT JOIN doc_city e ON a.city = e.name
+                 LEFT JOIN t_consign_transport b ON b.city_no = e.id
+                 LEFT JOIN t_consign_partner c ON a.station_no = c.station_no and b.partner_no = c.partner_no
+                 LEFT JOIN t_consign_partner_contact d on c.partner_no = d.partner_no
+        WHERE a.station_no = #{stationNo};
+    </select>
+    <select id="listAllStation" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE state = 1;
+    </select>
+    <select id="listStationByCityName" resultType="com.jxywkj.application.pet.model.consign.Station">
+        select *
+        from t_consign_station
+        where city = #{cityName};
+    </select>
+
+    <select id="getByPhone" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE phone = #{phone}
+        LIMIT 1;
+    </select>
+
+    <select id="listByProvinceAndCity" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE province = #{province}
+          AND city = #{city};
+    </select>
+
+    <select id="getByStaffOpenId" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE station_no = (
+            SELECT station_no
+            FROM t_consign_staff
+            WHERE openid = #{openId}
+              AND state = #{staffState}
+            LIMIT 1
+        )
+        LIMIT 1;
+    </select>
+
+    <select id="getPhoneByStationNo" resultType="java.lang.String">
+        SELECT phone
+        FROM t_consign_station
+        WHERE station_no = #{stationNo}
+        LIMIT 1;
+    </select>
+
+    <select id="getByAdminOpenId" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE phone = (
+            SELECT phone
+            FROM t_consign_staff
+            WHERE openid = #{adminOpenId}
+              AND state = #{staffState}
+            LIMIT 1
+        )
+        LIMIT 1;
+    </select>
+
+    <select id="getByOpenId" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE station_no = (
+            SELECT station_no
+            FROM t_consign_staff
+            WHERE openid = #{openId}
+              AND state = #{staffState}
+            LIMIT 1
+        )
+        LIMIT 1;
+    </select>
+
+    <select id="getByUnionId" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE station_no = (
+            SELECT station_no
+            FROM t_consign_staff
+            WHERE unionid = #{unionId}
+              AND state = #{staffState}
+            LIMIT 1
+        )
+        LIMIT 1;
+    </select>
+
+    <select id="getByOrderNo" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE station_no =
+         (
+            SELECT station_no
+            FROM t_consign_order
+            WHERE order_no = #{orderNo}
+            LIMIT 1
+        )
+        LIMIT 1;
+    </select>
+
+    <select id="getByTransportNo" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE city = (
+          select `name` from doc_city where id =
+            (SELECT city_no FROM t_consign_transport WHERE transport_no = #{transportNo} LIMIT 1)
+        );
+    </select>
+    <select id="listAdminStation" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *
+        FROM t_consign_station
+        WHERE 1=1
+        <if test="station.stationNo > 0">
+            and station_no = #{station.stationNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(station.stationName)">
+            and (station_name like concat('%', #{station.stationName}, '%'))
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(station.province)">
+            and province = #{station.province}
+        </if>
+
+        LIMIT #{start}, #{limit};
+    </select>
+    <select id="countAdminStation" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM t_consign_station
+        WHERE 1=1
+        <if test="station.stationNo > 0 ">
+            and station_no = #{station.stationNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(station.stationName)">
+            and (station_name like concat('%', #{station.stationName}, '%'))
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(station.province)">
+            and province = #{station.province}
+        </if>
+    </select>
+
+    <select id="getByCustomerNo" resultMap="station">
+        SELECT a.* FROM t_consign_station a
+        JOIN t_consign_staff b ON a.station_no = b.station_no
+         JOIN t_common_customer c ON b.phone = c.phone and a.phone = c.phone
+         WHERE c.customer_no = #{customerNo}
+    </select>
+
+    <select id="listByPosition" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT *, SQRT(POW(lng - #{stationPosition.longitude}, 2) + POW(lat - #{stationPosition.latitude},
+        2)) AS distance
+        FROM t_consign_station
+        WHERE lng
+        BETWEEN #{stationPosition.startLongitude} AND #{stationPosition.endLongitude}
+        AND lat
+        BETWEEN #{stationPosition.startLatitude} AND #{stationPosition.endLatitude}
+        AND state = #{state}
+        ORDER BY distance ASC
+        <if test="limit != 0">
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="listGroupByCity" resultType="com.jxywkj.application.pet.model.consign.Station">
+        SELECT * FROM t_consign_station
+        GROUP BY city;
+    </select>
+
+    <select id="listByProvince" resultType="com.jxywkj.application.pet.model.consign.Station">
+         SELECT * FROM t_consign_station
+         WHERE province = #{province};
+    </select>
+
+    <select id="listStationByCity" resultMap="station">
+        select * from t_consign_station station
+        where station.city = #{city} and station.state = 1
+        order by station.state asc
+        <if test="distanceSort != null">
+            ,IF((ISNULL(#{lat}) || LENGTH(trim(#{lat})) &lt; 1 || ISNULL(lat) || LENGTH(trim(lat)) &lt; 1), 1000000,
+            ROUND(
+            6378.137 * 2
+            * ASIN(
+            SQRT(
+            POW(SIN((#{lat} * PI() / 180 - lat * PI() / 180) / 2), 2)
+            + COS(#{lat} * PI() / 180)
+            * COS(lat * PI() / 180)
+            * POW(SIN((#{lng} * PI() / 180 - lng * PI() / 180) / 2),2)
+            )
+            ),
+            2)) ${distanceSort}
+        </if>
+        <if test="orderNum != null">
+            , (select count(*)
+                from t_consign_order orders
+                where orders.station_no = station.station_no)
+                ${orderNum}
+        </if>
+    </select>
+
+    <select id="listStartCity" resultType="java.lang.String">
+        select city
+        from t_consign_station
+        where state = 1
+        group by city
+    </select>
+</mapper>

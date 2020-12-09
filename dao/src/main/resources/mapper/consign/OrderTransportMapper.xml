@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderTransportMapper">
+    <resultMap id="baseOrderTransport" type="com.jxywkj.application.pet.model.consign.OrderTransport">
+        <result column="order_no" property="order.orderNo"/>
+        <result column="staff_no" property="staff.staffNo"/>
+        <result column="station_no" property="station.stationNo"/>
+        <result column="date_time" property="dateTime"/>
+    </resultMap>
+
+
+    <insert id="saveOrderTransport" parameterType="com.jxywkj.application.pet.model.consign.OrderTransport">
+        DELETE
+        FROM t_consign_order_transport
+        WHERE order_no = #{orderTransport.order.orderNo};
+        INSERT INTO t_consign_order_transport
+        (order_no, station_no, staff_no, transport_type, transport_num, express_num, start_city, end_city, date_time)
+        VALUES (#{orderTransport.order.orderNo},
+                #{orderTransport.station.stationNo},
+                #{orderTransport.staff.staffNo},
+                #{orderTransport.transportType},
+                #{orderTransport.transportNum},
+                #{orderTransport.expressNum},
+                #{orderTransport.startCity},
+                #{orderTransport.endCity},
+                #{orderTransport.dateTime});
+    </insert>
+
+    <select id="listByTransportNumAndDateTime" resultMap="baseOrderTransport">
+        SELECT *
+        FROM t_consign_order_transport
+        WHERE transport_num = #{transportNum}
+          AND date_time &gt;= #{dateTime};
+    </select>
+
+    <select id="getLastByOrderNo" resultMap="baseOrderTransport">
+        SELECT *
+        FROM t_consign_order_transport
+        WHERE order_no = #{orderNo}
+        ORDER BY `date_time` DESC
+        LIMIT 1;
+    </select>
+
+</mapper>

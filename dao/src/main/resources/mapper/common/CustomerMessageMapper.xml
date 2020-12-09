@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.CustomerMessageMapper">
+    <insert id="saveAMessage" parameterType="com.jxywkj.application.pet.model.common.CustomerMessage">
+        INSERT INTO
+         t_common_message (message_no , send_no , receive_no , message_title , message_content , status , send_time , update_time , link)
+         VALUES (#{customerMessage.messageNo}, #{customerMessage.sendNo} , #{customerMessage.receiveNo} ,
+         #{customerMessage.messageTitle} , #{customerMessage.messageContent} ,#{customerMessage.status} ,
+          NOW() , NOW() , #{customerMessage.link});
+    </insert>
+
+    <update id="updateMessage">
+        UPDATE t_common_message SET status = #{messageStatus} WHERE message_no = #{messageId};
+    </update>
+
+    <update id="updateMessageList">
+        UPDATE t_common_message SET status = #{messageStatus} WHERE message_no in
+        <foreach collection="messageId" separator="," open="(" close=")" item="messageNo">
+            #{messageNo}
+        </foreach>
+    </update>
+
+    <update id="updateAllMessageByRecId">
+        UPDATE t_common_message SET status = #{messageType} WHERE receive_no = #{recId};
+    </update>
+
+    <update id="updateAllMessageByRecIdAndType">
+        UPDATE t_common_message SET status = #{newMessageType} WHERE receive_no = #{recId} AND status = #{oldMessageType};
+    </update>
+
+    <insert id="saveMessageWithOrderAssigment">
+        INSERT INTO t_common_message (
+            send_no,
+            receive_no,
+            message_title,
+            message_content,
+            STATUS,
+            send_time,
+            update_time,
+            link
+        )(
+            SELECT
+                #{customerMessage.sendNo} AS send_no ,
+                a.phone AS receive_no,
+                #{customerMessage.messageTitle} AS message_title ,
+                #{customerMessage.messageContent} AS  message_content,
+                #{customerMessage.status} AS status,
+                #{customerMessage.sendTime} AS  send_time,
+                #{customerMessage.updateTime} AS update_time,
+                #{customerMessage.link} AS link
+            FROM t_consign_staff a JOIN
+                t_consign_order_assignment b
+                ON a.staff_no = b.staff_no
+            WHERE
+                b.order_no = #{orderNo});
+    </insert>
+
+    <select id="countByPhone" resultType="java.lang.Integer">
+        SELECT COUNT(1) FROM t_common_message WHERE receive_no = #{phone} AND status = #{status} AND update_time &gt;= #{lastGetTime};
+    </select>
+
+    <select id="listByPhone" resultType="com.jxywkj.application.pet.model.common.CustomerMessage">
+        SELECT * FROM t_common_message WHERE receive_no = #{phone} ORDER BY update_time DESC LIMIT #{offset} , #{limit};
+    </select>
+
+</mapper>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignStationOrderMapper">
+    <resultMap id="baseOrder" type="com.jxywkj.application.pet.model.consign.Order">
+        <result property="transport.transportNo" column="transport_no"/>
+        <result property="transport.startCity" column="start_city"/>
+        <result property="transport.endCity" column="end_city"/>
+        <result property="transport.transportType" column="transport_type"/>
+        <result property="station.stationNo" column="station_no"/>
+        <result property="petSort.petSortName" column="pet_type_name"/>
+        <result property="petGenre.petGenreName" column="pet_classify_name"/>
+        <result property="addedWeightCage.cageName" column="cage_name"/>
+        <result property="addedWeightCage.cagePrice" column="cage_price"/>
+        <result property="addedInsure.insureAmount" column="insure_amount"/>
+    </resultMap>
+
+    <select id="listByStationNoAndType" resultMap="baseOrder">
+        SELECT a.*, temp.station_no, b.*
+        FROM t_consign_order a
+                 JOIN (
+            SELECT order_no, station_no
+            FROM t_consign_order a
+                     JOIN t_consign_transport b ON a.transport_no = b.transport_no
+                AND a.station_no = #{stationNo}
+            WHERE a.state IN
+            <if test="states != null">
+                <foreach collection="states" item="state" open="(" close=")" separator=",">
+                    #{state}
+                </foreach>
+            </if>
+            LIMIT #{offset}, #{limit}
+        ) temp ON a.order_no = temp.order_no
+                 LEFT JOIN t_consign_transport b ON a.transport_no = b.transport_no
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (customer_no like concat('%',#{keyword},'%')
+                or sender_phone like concat('%',#{keyword},'%')
+                or receiver_phone like concat('%',#{keyword},'%'))
+                or a.order_no like concat('%',#{keyword},'%')
+            </if>
+            <if test="orderDate != null and orderDate != ''">
+                and order_date = #{orderDate}
+            </if>
+        </where>
+    </select>
+</mapper>

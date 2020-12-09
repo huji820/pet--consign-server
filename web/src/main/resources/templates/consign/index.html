@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>宠物之家</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="../../static/js/axios.min.js"></script>
+    <!--    <script src="http://webapi.amap.com/maps?v=1.4.6&key=7c792ccd9009b2aede70702cac837966&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.Geocoder"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="../../static/js/jQuery-2.2.0.min.js"></script>
+    <script src="/static/js/index.js"></script>
+    <style>
+        html, body, #app, .el-container {
+            /*设置内部填充为0，几个布局元素之间没有间距*/
+            padding: 0px;
+            /*外部间距也是如此设置*/
+            margin: 0px;
+            /*统一设置高度为100%*/
+            height: 100%;
+        }
+
+        iframe {
+            margin: 0px;
+            padding: 0px;
+            width: 100%;
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="height:100%" direction="vertical">
+        <el-header style="padding: 0">
+            <div style="background-color: #EBEBEB;width: 100%;height:60px">
+                <div style="width:100%;background-color: #2F4050; overflow: hidden">
+                    <el-row type="flex" justify="end">
+                        <el-col :span="24">
+                            <el-menu
+                                    :default-active="menuIndex"
+                                    class="el-menu-demo"
+                                    mode="horizontal"
+                                    @select="handleSelect"
+                                    background-color="#545c64"
+                                    text-color="#fff"
+                                    active-text-color="#ffd04b">
+                                <el-menu-item index="0">
+                                    <!-- <i class="iconfont iconditu"></i>-->
+                                    <span slot="title"></span>
+                                </el-menu-item>
+                                <el-menu-item index="1">
+                                    <i class="iconfont iconditu"></i>
+                                    <span slot="title">路线地图</span>
+                                </el-menu-item>
+                                <el-menu-item index="2">
+                                    <i class="iconfont icondingweidizhigpsditu"></i>
+                                    <span>网点位置</span>
+                                </el-menu-item>
+
+                                <el-menu-item index="3">
+                                    <i class="iconfont iconluxian"></i>
+                                    <span>网点路线</span>
+                                </el-menu-item>
+
+                                <el-submenu index="4">
+                                    <template slot="title">
+                                        <i class="iconfont icondingdan"></i>
+                                        <span>订单管理</span>
+                                    </template>
+                                    <el-menu-item-group>
+                                        <el-menu-item index="4-1">订单列表</el-menu-item>
+                                        <el-menu-item index="4-4">订单账簿</el-menu-item>
+                                    </el-menu-item-group>
+                                </el-submenu>
+
+                                <el-submenu index="8">
+                                    <template slot="title">
+                                        <i class="iconfont icondingdan"></i>
+                                        <span>运输配置</span>
+                                    </template>
+                                    <el-menu-item-group>
+                                        <el-menu-item index="8-1">接/送宠配置</el-menu-item>
+                                        <el-menu-item index="8-2">宠物笼配置</el-menu-item>
+                                        <el-menu-item index="8-3">站点配置</el-menu-item>
+                                        <el-menu-item index="8-4">运输位置配置</el-menu-item>
+                                    </el-menu-item-group>
+                                </el-submenu>
+
+                                <el-submenu index="5">
+                                    <template slot="title">
+                                        <i class="iconfont iconditu"></i>
+                                        <span slot="title">财务中心</span>
+                                    </template>
+                                    <el-menu-item-group>
+                                        <el-menu-item index="5-1">提现</el-menu-item>
+                                        <el-menu-item index="5-2">流水</el-menu-item>
+                                    </el-menu-item-group>
+                                </el-submenu>
+
+
+                                <el-submenu index="6" :style="split">
+                                    <template slot="title">
+                                        <i class="el-icon-coin"></i>
+                                        <span>账号设置</span>
+                                    </template>
+                                    <el-menu-item-group>
+                                        <el-menu-item index="6-1">主号设置</el-menu-item>
+                                        <el-menu-item index="6-2">员工设置</el-menu-item>
+                                        <el-menu-item index="6-3">
+                                            退出系统
+                                        </el-menu-item>
+                                    </el-menu-item-group>
+                                </el-submenu>
+                            </el-menu>
+                        </el-col>
+
+                    </el-row>
+                </div>
+            </div>
+        </el-header>
+        <el-main style="padding: 0;overflow:hidden;">
+            <!--src为页面名称-->
+            <iframe scrolling="auto" frameborder="0" :src="iframeIndex"></iframe>
+        </el-main>
+    </el-container>
+</div>
+
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                iframeIndex: "toMap",
+                menuIndex: "1",
+                routerType: true,
+                split: {
+                    margin: '0 0 0 500px'
+                }
+            }
+        },
+        methods: {
+            handleIconClick(ev) {
+                console.log(ev);
+            },
+            /*  修改下侧的页面*/
+            handleSelect(key, keyPath) {
+                // 利用ajax请求判断session是否失效
+                switch (key) {
+                    case '1':
+                        this.iframeIndex = "toMap";
+                        break;
+                    case '2':
+                        this.iframeIndex = "toPartner";
+                        break;
+                    case '3':
+                        this.iframeIndex = "toTransport";
+                        break;
+                    case '4-1':
+                        this.iframeIndex = "toOrder";
+                        break;
+                    case '4-4':
+                        this.iframeIndex = 'toOrderLedger';
+                        break;
+                    case '5-1':
+                        this.iframeIndex = "toSettlement";
+                        break;
+                    case '5-2':
+                        this.iframeIndex = "toFlow";
+                        break;
+                    case '6-1':
+                        this.iframeIndex = "toEdit";
+                        break;
+                    case '6-2':
+                        this.iframeIndex = "toStaff";
+                        break;
+                    case '6-3':
+                        location.href = "/consign/toLoginPage";
+                        break;
+                    case '8-1':
+                        this.iframeIndex = "transportConfig";
+                        break;
+                    case '8-2':
+                        this.iframeIndex = "petCageConfig";
+                        break;
+                    case '8-3':
+                        this.iframeIndex = "blacklistConfig";
+                        break;
+                    case '8-4' :
+                        this.iframeIndex = "toPosition";
+                }
+            },
+        },
+        created() {
+        },
+        mounted() {
+            this.split.margin = '0 0 0 ' + (document.body.clientWidth - 120 * 8) + 'px';
+        }
+    })
+</script>
+</html>

@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-main style="margin: 0; padding: 0">
+            <el-table
+                    :data="orderTableData"
+                    id="tableExcel"
+                    stripe
+                    border
+                    :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                    :cell-style="{'text-align': 'center'}"
+                    :max-height="maxHeight"
+            >
+                <el-table-column
+                        fixed
+                        prop="orderNo"
+                        label="订单号"
+                        width="200">
+                </el-table-column>
+                <el-table-column
+                        prop="transport.transportName"
+                        label="路线"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="leaveDate"
+                        label="出发日期"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="orderDate"
+                        label="下单日期"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="orderTime"
+                        label="下单时间"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="petSort.petTypeName"
+                        label="宠物类别"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="petGenre.petClassifyName"
+                        label="宠物种类"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="weight"
+                        label="宠物重量"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="num"
+                        label="数量"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="finalRetailPrice"
+                        label="预估价格"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="finalJoinPrice"
+                        label="商家底价"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="paymentAmount"
+                        label="实际付款金额"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="addedAirBox.airBoxName"
+                        label="航空箱名称"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="addedAirBox.airBoxAmount"
+                        label="航空箱金额"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="addedInsure.insureAmount"
+                        label="保价费用"
+                        width="80">
+                </el-table-column>
+                <el-table-column
+                        prop="num"
+                        label="宠物重量"
+                        width="150">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptAddress"
+                        label="上门接宠地址"
+                        width="140">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptDistance"
+                        label="上门接宠距离"
+                        width="140">
+                </el-table-column>
+                <el-table-column
+                        prop="receiptAmount"
+                        label="上门接宠花费金额"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="sendAddress"
+                        label="送宠到家地址"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="sendDistance"
+                        label="送宠到家距离"
+                        width="100">
+                </el-table-column>
+                <el-table-column
+                        prop="sendAmount"
+                        label="送宠到家花费金额"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="senderName"
+                        label="寄件人姓名"
+                        width="180">
+                </el-table-column>
+                <el-table-column
+                        prop="senderPhone"
+                        label="寄件人联系电话"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="receiverName"
+                        label="收件人姓名"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="receiverPhone"
+                        label="收件人联系电话"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="remarks"
+                        label="备注"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="state"
+                        label="状态"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        prop="giveFood"
+                        label="是否赠送食物"
+                        width="160">
+                </el-table-column>
+                <el-table-column
+                        fixed="right"
+                        label="操作"
+                        width="150">
+                    <template slot-scope="scope">
+                        <el-button @click="showEditJDialog(scope.row)" type="text" size="small">补差价</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+        </el-main>
+        <!-- 分页插件 -->
+        <el-footer>
+            <div style="text-align:  center">
+                <el-pagination
+                        background
+                        layout="prev, pager, next"
+                        :total="1000">
+                </el-pagination>
+            </div>
+        </el-footer>
+    </el-container>
+
+    <!-- 补差价 -->
+    <el-dialog title="补差价" :inline="true" :visible.sync="OrderSpread.visible" size="small" witch="800px">
+
+        <el-form :model="OrderSpread">
+            <el-form :inline="true">
+                <el-form-item label="订单编号">
+                    <el-input autocomplete="off" v-model="OrderSpread.order" :disabled="true"
+                              style="width:180px"></el-input>
+                </el-form-item>
+                <el-form-item label="状态">
+                    <el-input autocomplete="off" v-model="OrderSpread.state" :disabled="true"
+                              style="width:180px"></el-input>
+                </el-form-item>
+                <el-form-item label="请输入差价">
+                    <el-input autocomplete="off" v-model="OrderSpread.amount" style="width:100px"></el-input>
+                    <span>金额</span>
+                </el-form-item>
+            </el-form>
+
+            <el-form :inline="true">
+                <el-form-item label="事由起因">
+                    <el-input type="textarea" v-model="OrderSpread.reason" style="width:800px" :rows="6"></el-input>
+                </el-form-item>
+            </el-form>
+
+            <!--  <el-upload
+                      class="upload-demo"
+                      ref="upload"
+                      accept="image/jpeg,image/jpg,image/png"
+                      action="/api/consign/orderState/uploadFile"
+                      :on-preview="handlePreview"
+                      :on-remove="handleRemove"
+                      :file-list="fileList"
+                      :auto-upload="false">
+                  <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                  <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">上传到服务器</el-button>
+                  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+              </el-upload>-->
+
+            <el-form-item label="缩略图" prop="thumb">
+                 <span v-for="item in form.thumb">
+                      <el-popover placement="left" title="" trigger="hover" width="600">
+                        <img :src="item" width="100%"/>
+                        <img slot="reference" :src="item" :alt="item" style="height: 150px;width: 150px; padding: 3px">
+                      </el-popover>
+                 </span>
+                <!--<el-input v-model="form.thumb" placeholder="请选择缩略图"></el-input>-->
+                <el-upload
+                        class="upload-demo"
+                        action="#"
+                        ref="upload"
+                        :multiple="true"
+                        accept="image/jpeg,image/jpg,image/png"
+                        :auto-upload="false"
+                        :on-preview="handlePreview"
+                        :on-change="handleChange"
+                        :on-remove="handleRemove"
+                        :file-list="fileList"
+                        list-type="picture-card">
+                    <i class="el-icon-plus"></i>
+                </el-upload>
+                <el-dialog :visible.sync="dialogVisible">
+                    <img width="100%" :src="dialogImageUrl" alt="">
+                </el-dialog>
+            </el-form-item>
+
+            :http-request：替代自动上传的action
+
+
+            list-type：文件列表的类型
+
+            on-preview：点击文件列表中已上传的文件时的钩子
+
+            on-remove：移除以上次的文件
+
+            limit：限制上次的文件个数
+
+            :on-exceed：超出个数限制的回调
+
+            :file-list：文件列表名称
+
+
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="OrderSpread.visible=false">取 消</el-button>
+            <el-button type="primary" @click="insetOrderSpread">提 交</el-button>
+        </div>
+
+    </el-dialog>
+
+</div>
+
+</body>
+</html>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                form: {
+                    thumb: [],
+                },
+                dialogVisible: false,
+                dialogImageUrl: '',
+                fileList: [],
+                /*  fileList: [{name: 'food.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'},
+                      {name: 'food2.jpeg', url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'}],
+  */
+
+                tableStyle: {
+                    width: '100%',
+                    height: '500px'
+                },
+                maxHeight: 10,
+                orderTableData: [],
+                activeIndex: '4',
+                search: '',
+                mapStyle: {
+                    height: window.innerHeight - 60 + 'px'
+                },
+                infoDialogVisible: false,
+                consignDialogVisible: false,
+                stationNum: 0, //专车网点数量
+                lineNum: 0, //专车路线数量,
+                searchResult: {
+                    name: '',
+                    lat: 0,
+                    lng: 0
+                },
+                station: {
+                    contact: '',
+                    phone: '',
+                    address: '',
+                    stationName: '',
+                    longitude: 0,
+                    latitude: 0
+                },
+                OrderSpread: {
+                    order: '',
+                    amount: '',
+                    reason: '',
+                    state: '',
+                    visible: false
+                },
+
+                updateRow: {
+                    orderNo: '',
+                    transport: {},
+                    leaveDate: '',
+                    orderDate: '',
+                    orderTime: '',
+                    petSort: {},
+                    petGenre: {},
+                    weight: '',
+                    num: 0,
+                    finalRetailPrice: '',
+                    finalJoinPrice: '',
+                    paymentAmount: '',
+                    addedAirBox: {},
+                    addedInsure: {},
+                    petAmount: '',
+                    receiptAddress: '',
+                    receiptDistance: '',
+                    receiptAmount: '',
+                    sendAddress: '',
+                    sendDistance: '',
+                    sendAmount: '',
+                    senderName: '',
+                    senderPhone: '',
+                    receiverName: '',
+                    receiverPhone: '',
+                    remarks: '',
+                    state: '',
+                    giveFood: '',
+                    openId: ''
+                },
+                upRowParam: {
+                    giveFoodSelectedList: [{value: '是', label: '是'}, {value: '否', label: '否'}],
+                    airBoxList: [],
+                    petSort: [],
+                    petGenre: []
+                }
+            }
+        },
+        methods: {
+            handleRemove(file, fileList) {
+                this.fileList = fileList;
+                //console.log(fileList);
+                this.$message({
+                    type: 'info',
+                    message: '已删除原有图片',
+                    duration: 1000
+                });
+            },
+            handlePreview(file) {
+                this.dialogImageUrl = file.url;
+                this.dialogVisible = true;
+            },
+            handleChange(file, fileList) {
+                this.fileList = fileList;
+            },
+            create(formName) {
+                const set = this.$refs;
+                set[formName].validate(valid => {
+                    if (valid) {
+                        this.formData = new FormData();
+                        for (let x in this.form) {
+                            this.formData.append(x, this.form[x]);
+                        }
+                        for (let i = 0; i < this.fileList.length; i++) {
+                            this.formData.append("file", this.fileList[i].raw);
+                        }
+                        //this.formData.append("isDelete","0");
+                        console.log(this.formData);
+                        addUpload(this.formData)
+                        //addObj(this.form)
+                            .then(() => {
+                                this.dialogFormVisible = false;
+                                this.fileList = [];
+                                this.getList();
+                                this.$notify({
+                                    title: '成功',
+                                    message: '创建成功',
+                                    type: 'success',
+                                    duration: 2000
+                                });
+                            })
+                    } else {
+                        return false;
+                    }
+                });
+            },
+
+
+            /*   submitUpload() {
+                   this.$refs.upload.submit();
+               },
+               handleRemove(file, fileList) {
+                   console.log(file, fileList);
+               },
+               handlePreview(file) {
+                   console.log(file);
+               },
+   */
+            OrderSpreadempty() {
+                this.OrderSpread.amount = '',
+                    this.OrderSpread.order = '',
+                    this.OrderSpread.reason = '',
+                    this.OrderSpread.state = ''
+            },
+
+            listOrders: function () {
+                axios.get("/consign/order/listStationList").then((res) => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.orderTableData = res.data.data;
+                    } else {
+                        this.$message.error('请求失败！');
+                    }
+                    // 请求成功！
+                }).catch((err) => {
+                    this.$message.error('请求失败！');
+                });
+            },
+
+            insetOrderSpread() {
+                axios.post("/consign/OrderSpread", this.OrderSpread).then((res) => {
+
+                    if (res.status === 200) {
+                        this.$message.success("提交成功");
+                        this.OrderSpread.visible = false;
+                        this.OrderSpreadempty();
+                    } else {
+                        this.$message.error("提交失败！");
+                        this.OrderSpread.visible = false;
+                        this.OrderSpreadempty();
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                    this.OrderSpread.visible = false;
+                    this.OrderSpreadempty();
+                });
+            },
+
+            showEditJDialog(row) {
+                this.loadData(row);
+                this.OrderSpread.visible = true;
+            },
+
+            loadData(data) {
+                this.OrderSpread.order = data.orderNo;
+                this.OrderSpread.state = data.state;
+            },
+
+        },
+        created() {
+            this.listOrders();
+            this.maxHeight = document.body.clientHeight - 80;
+        }
+    });
+</script>

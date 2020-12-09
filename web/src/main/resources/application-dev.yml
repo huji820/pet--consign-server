@@ -1,0 +1,122 @@
+server:
+  port: 7777
+  error:
+    path: /404
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+#      url: jdbc:mysql://127.0.0.1:3306/pet_test?serverTimezone=UTC&characterEncoding=utf8&useUnicode=true&useSSL=false&allowMultiQueries=true&useAffectedRows=true
+#      url: jdbc:mysql://192.168.3.168:3306/pet?serverTimezone=UTC&characterEncoding=utf8&useUnicode=true&useSSL=false&allowMultiQueries=true&useAffectedRows=true
+#      url: jdbc:mysql://39.105.193.203:3306/pet?serverTimezone=UTC&useUnicode=true&useSSL=false&allowMultiQueries=true&useAffectedRows=true
+      url: jdbc:mysql://39.105.193.203:3306/pet?serverTimezone=UTC&useUnicode=true&useSSL=false&allowMultiQueries=true&useAffectedRows=true
+      driver-class-name: com.mysql.jdbc.Driver
+      username: root
+#      password: bt31User
+#      password: 123
+      password: Jxywkj@0820
+      initial-size: 10
+      max-active: 10
+      min-idle: 5
+      max-wait: 6000
+      min-evictable-idle-time-millis: 300000
+      time-between-eviction-runs-millis: 60000
+      validation-query: select 'x'
+      test-on-borrow: false
+      test-on-return: false
+      test-while-idle: true
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 50
+      stat-view-servlet:
+        login-username: ywkj
+        login-password: ywkj
+  thymeleaf:
+    cache: false
+    prefix: classpath:/templates/
+    suffix: .html
+    encoding: UTF-8
+    mode: HTML5
+  resources:
+    static-locations: classpath:/static/
+  mvc:
+    static-path-pattern: /static/**
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  cache:
+    type: ehcache
+    ehcache:
+      config: classpath:/ehcache.xml
+mybatis:
+  #实体类所做包
+  type-aliases-package: com.ywkj.application.cheyouhui.model
+  #mapper.xml所在位置
+  mapper-locations: /mapper/**/*Mapper.xml
+  configuration:
+    #是否启用驼峰命名
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#文件
+file:
+  path: F:/文件
+  # 加载路径
+  load-Path: file:/${file.path}/
+  # 上传路径
+  upload-Path: ${file.path}/
+  # 预览图
+  preview-path: ${file.path}/preview/
+logging:
+  level:
+    root: info
+  path: ${file.path}
+  file: petLog.log
+weChat:
+  weapp:
+    appID: wxcbdaa290fc45a263
+    appsecret: 001d9c5d2a519025be7a6acfa25a9fab
+  app:
+    appID: wxdfa53b67908e1615
+    appsecret: a98f73a886541412e5db990dc3ea7919
+  mchID: 1561104711
+  # 这个参数partnerkey是在商户后台配置的一个32位的key,微信商户平台-账户设置-安全设置-api安全
+  partnerkey: taochonghui987654321987654321987
+  alive: 7000000
+  Token: jxywkj
+  certPath: cert/apiclient_cert.p12
+okHttp:
+  readTimeOut: 20
+  connectTimeout: 6
+  writeTimeout: 60
+swagger:
+  showApi: true
+amap:
+  key: 7c792ccd9009b2aede70702cac837966
+juhe:
+  weizhan: 455666d4f86d42de76c9c65132856113
+  duanxin: 9297b4023184e9f59d4176e462bb9047
+  appKey: 7329181a58617c39a47944bed03b7b3e
+localHost: https://consign.taochonghui.com
+gaode:
+  key: b073129dc87c4bb7ddc7c3e1658e9aec
+variflight:
+  appid: 10850
+  appsecurity: 5dc281e4cd040
+pictureHost:
+  http://192.168.3.111:6060/resource
+aliyun:
+  oss:
+    accessKeyId: LTAI4FnHixH9ffmT2i3D9CtL
+    accessKeySecret: g3JfvahPWon5iWw8LxercdX5A8L4ZJ
+    bucketName: taochonghui
+    endpoint: https://oss-cn-qingdao.aliyuncs.com
+  sms:
+    accessKeyId: LTAI4FnHixH9ffmT2i3D9CtL
+    accessKeySecret: g3JfvahPWon5iWw8LxercdX5A8L4ZJ
+    signName: 淘宠惠
+insur:
+  mchid: M02205
+  key: utFA4gyV1RmfYGo
+market:
+    server:
+      host: http://127.0.0.1:7070

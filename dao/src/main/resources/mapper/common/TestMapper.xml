@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.TestMapper">
+    <select id="listUnpaid" resultMap="com.jxywkj.application.pet.dao.consign.OrderPremiumMapper.OrderSpread">
+        SELECT a.bill_no,
+               a.order_date,
+               a.order_time,
+               a.reason,
+               a.append_images,
+               a.state,
+               a.amount,
+               a.order_no,
+               b.staff_no,
+               b.staff_name,
+               b.station_no
+        FROM t_consign_order_spread a
+                 LEFT JOIN t_consign_staff b ON a.staff_no = b.staff_no
+        WHERE a.state = '已支付'
+          AND NOT EXISTS(SELECT 1 FROM t_station_balance_flow c WHERE a.bill_no = c.link_no OR a.bill_no = c.bill_no);
+    </select>
+</mapper>

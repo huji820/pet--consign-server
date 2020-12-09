@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>宠物托运系统</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/jQuery-2.2.0.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <style>
+        {
+            margin: 0px
+        ;
+            padding: 0px
+        ;
+            text-decoration: none
+        ;
+            list-style: none
+        ;
+            font-size: 12px
+        ;
+            font-family: Arial
+        ;
+        }
+        /**login**/
+        .login_body {
+            background: transparent;
+            background: url(/static/images/login.jpg) 0px;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+            -moz-background-size: cover;
+            -webkit-background-size: cover;
+        }
+
+        .login_div {
+            filter: alpha(Opacity=4);
+            -moz-opacity: 0.5;
+            opacity: 0.5;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            width: 350px;
+            height: 250px;
+            top: 45%;
+            left: 80%;
+            color: #FFFFFF;
+            margin-top: -145px;
+            margin-left: -175px;
+            position: absolute;
+            border-radius: 10px;
+            z-index: 1;
+            background-color: #eee;
+            opacity: 1.8;
+            box-shadow: 5px 5px 10px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .login_div .login_title {
+            text-align: center;
+            font-size: 35px;
+            margin-top: 30px;
+            letter-spacing: 5px;
+            font-weight: bold;
+        }
+
+        .login_nav {
+            margin-top: 40px;
+        }
+
+        .login_username {
+            text-align: right;
+            height: 40px;
+            line-height: 40px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login_usernameInput {
+            height: 40px;
+            padding: 0px;
+        }
+
+        #name {
+            font-size: 12px;
+            height: 40px;
+            outline: 0px;
+            border-radius: 10px;
+            border: 1px solid #CCCCCC;
+            width: 95%;
+        }
+
+        .ok_gou {
+            height: 40px;
+            color: #5CB85C;
+            font-size: 35px;
+            display: none;
+            text-align: center;
+            border-radius: 10px;
+            padding: 0px;
+            line-height: 37px;
+            border: 2px solid #5CB85C;
+        }
+
+        .error_cuo {
+            height: 40px;
+            color: red;
+            font-size: 40px;
+            display: none;
+            text-align: center;
+            border-radius: 10px;
+            padding: 0px;
+            line-height: 30px;
+            border: 2px solid red;
+        }
+
+        .login_psdNav {
+            margin-top: 30px;
+        }
+
+        .box-talk {
+            position: absolute;
+            left: 70%;
+            width: 360px;
+            height: 160px;
+            margin-left: -670px;
+            background-size: contain;
+            top: 40%;
+            margin-top: -60px;
+        }
+
+        .login_psdNav .col-xs-4 {
+            text-align: right;
+            height: 40px;
+            line-height: 40px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login_psdNav .col-xs-6 {
+            height: 40px;
+            padding: 0px;
+        }
+
+        #psd {
+            height: 40px;
+            font-size: 12px;
+            outline: 0px;
+            border-radius: 10px;
+            border: 1px solid #CCCCCC;
+            width: 95%;
+        }
+
+        .login_btn_div {
+            text-align: center;
+            margin-top: 30px;
+            padding-left: 50px;
+        }
+
+        #login {
+            outline: 0px;
+            border: 0px;
+            width: 200px;
+            height: 40px;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        #affirm_psd {
+            height: 40px;
+            font-size: 12px;
+            outline: 0px;
+            border-radius: 10px;
+            border: 1px solid #CCCCCC;
+            width: 95%;
+        }
+
+        .sub_btn:hover {
+            background: #3b6dc2;
+        }
+
+        input[type="submit"] {
+            background: #305fb9;
+        }
+
+        .show-captcha {
+            margin-top: 15px;
+            margin-right: 10px;
+        }
+
+        label {
+            color: black;
+        }
+
+        .login_div {
+            padding: 30px 30px;
+        }
+
+        #forget {
+            line-height: 34px;
+            font-size: 15px;
+            font-weight: 500;
+            color: black;
+        }
+
+        html, body {
+            margin: 0;
+            65 +padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<!--后台管理员主页面-->
+<div style="height: 50px;color: #5e5e5e;height: 60px;font-size: 18px; background-color:#f8f8f8;line-height: 60px;padding-left: 120px;">
+    宠物托运系统 • 正式环境（SAAS版） | 登录
+</div>
+<div class="login_body" style="width: 100%;height:80%">
+    <div class="login_div">
+        <form action="/consign/login" method="post">
+            <div class='form-group'>
+                <label>电话号码：</label>
+                <div class="input-group">
+                  <span class="input-group-addon">
+                    <i class='iconfont iconzhanghao'></i>
+                  </span>
+                    <input id="username" type="text" class="form-control" name="username" placeholder="电话号码">
+                </div>
+            </div>
+            <div class='form-group'>
+                <label>密码：</label>
+                <div class="input-group">
+                  <span class="input-group-addon">
+                    <i class='iconfont iconmima'></i>
+                  </span>
+                    <input id="pwd" type="password" class="form-control" name="pwd" placeholder="密码">
+                </div>
+            </div>
+            <!--<div class='form-group'>-->
+                <!--<label>验证码：</label>-->
+                <!--<div class="input-group">-->
+                    <!--<input type="text" class="form-control" name="verificationCode" placeholder="验证码">-->
+                    <!--<span class="input-group-btn">-->
+                        <!--<button id="verificationCodeBtn" class="btn btn-default" type="button"-->
+                                <!--onclick="getVerificationCode()">获取验证码</button>-->
+                    <!--</span>-->
+                <!--</div>-->
+            <!--</div>-->
+            <div class='form-group'>
+                <div>
+                    <button type="submit" id="myButton" style="width: 100%;" class="btn btn-primary"
+                            autocomplete="off">
+                        登录
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="box-talk"></div>
+
+    <input type="hidden" name="zyname" id="code"/>
+    <!--当登陆错误时返回用于接收后台返回的一个结果-->
+    <input type="hidden" id="err" th:value="${#httpServletRequest.getParameter('errMsg')}"/>
+</div>
+<div style="height: 50px; color: #5e5e5e;font-size: 18px; background-color:#f8f8f8;line-height: 60px;text-align:center">
+    河北省淘宠惠物联网科技有限公司 全国客服热线 400-777-8889
+</div>
+</body>
+</html>
+<script type="text/javascript">
+    let waitSecond = 60;
+
+    $(document).ready(function () {
+        if ($("#err").val() == '1') {
+            alert("账号或密码错误");
+        }
+        // else if ($("#err").val() == '2') {
+        //     alert("验证码与手机号不匹配");
+        // }
+        //  else if ($("#err").val() == '3') {
+        //     alert("验证码错误");
+        // }
+    });
+
+    /**获取验证码*/
+    function getVerificationCode() {
+        // 初始化计时器
+        let waitSecond = 60;
+        // 定时器
+        let timer;
+
+        if ($("input[ name='username' ]").val() === null || $("input[ name='username' ]").val() === '') {
+            alert("请输手机号码");
+            return;
+        }
+        $.ajax({
+            contentType: 'application/json',
+            url: '/business/VerificationCode',
+            dataType: 'JSON',
+            type: 'GET',
+            timeout: 2000,
+            data: {"phoneNumber": $("input[ name='username' ]").val()},
+            //请求成功
+            success: function (data, status) {
+                // 设置为不可点击
+                $("#verificationCodeBtn").attr('disabled', true);
+                timer = window.setInterval(function () {
+                    $("#verificationCodeBtn").text(waitSecond-- + "秒");
+                    if (waitSecond < 0) {
+                        // 设置为可点击
+                        $("#verificationCodeBtn").text("获取验证码");
+                        $("#verificationCodeBtn").attr('disabled', false);
+                        // 清除定时器
+                        window.clearInterval(timer);
+                        console.log(waitSecond);
+                    }
+                }, 1000);
+
+            },
+            //失败/超时
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert('获取验证码失败！');
+            }
+        })
+    }
+</script>

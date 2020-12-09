@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>位置配置</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 搜索框 -->
+    <row>
+        <el-form :inline="true" :model="query" class="demo-form-inline">
+            <el-form-item label="距离（KM）">
+                <el-input type="number" v-model="query.distance" placeholder="距离"></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="queryAction">查询</el-button>
+            </el-form-item>
+        </el-form>
+    </row>
+    <!-- 数据填写 -->
+    <row>
+        <!-- 起步重量 -->
+        <el-input style="width:300px" placeholder="起步重量" v-model="transport.startingWeight">
+            <template slot="prepend">起步重量</template>
+            <template slot="append">公斤</template>
+        </el-input>
+        <!-- 最大重量 -->
+        <el-input style="width:300px" placeholder="最大重量" v-model="transport.maxWeight">
+            <template slot="prepend">最大重量</template>
+            <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+        </el-input>
+        <!-- 终端起步价 -->
+        <el-input style="width:300px" placeholder="起步价" v-model="transport.startingRetailPrice">
+            <template slot="prepend">终端起步</template>
+            <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+        </el-input>
+        <!-- 加盟起步价 -->
+        <el-input style="width:300px" placeholder="起步价" v-model="transport.startingJoinPrice">
+            <template slot="prepend">加盟起步</template>
+            <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+        </el-input>
+        <!-- 终端续重费 -->
+        <el-input style="width:300px" placeholder="续重费" v-model="transport.continueRetailPrice">
+            <template slot="prepend">终端续重</template>
+            <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+        </el-input>
+        <!-- 加盟续重费 -->
+        <el-input style="width:300px" placeholder="续重费" v-model="transport.continueJoinPrice">
+            <template slot="prepend">加盟续重</template>
+            <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+        </el-input>
+    </row>
+    <!-- 路线列表 -->
+    <row>
+        <el-table
+                ref="transportList"
+                :data="transportList"
+                tooltip-effect="dark"
+                style="width: 100%">
+            <el-table-column
+                    type="selection"
+                    width="55">
+            </el-table-column>
+            <el-table-column
+                    prop="startCity"
+                    label="起始城市">
+            </el-table-column>
+            <el-table-column
+                    prop="endCity"
+                    label="终点城市">
+            </el-table-column>
+            <el-table-column
+                    prop="transportName"
+                    label="运输路线名称">
+            </el-table-column>
+        </el-table>
+    </row>
+    <!-- 按钮 -->
+    <row>
+        <div style="float: right">
+            <el-button type="primary">下一页</el-button>
+            <el-button type="primary">上一页</el-button>
+            <el-button type="primary">保 存</el-button>
+        </div>
+    </row>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                query: {
+                    distance: 0,
+                },
+                transport: {
+                    // 笼具
+                    cage: {
+                        useVolume: true,
+                        addedWeightCage: {
+                            cageNo: '',
+                            cageName: '',
+                            minWeight: 0,
+                            maxWeight: 0,
+                            cageWeight: 0,
+                            cagePrice: 0,
+                        },
+                        startingRetailPrice: 0,
+                        startingJoinPrice: 0,
+                    },
+                    startingWeight: 0,
+                    startingRetailPrice: 0,
+                    startingJoinPrice: 0,
+                    continueRetailPrice: 0,
+                    continueJoinPrice: 0,
+                    maxWeight: 0,
+                    type: 0
+                },
+                transportList: [],
+                selectedList: []
+            }
+        },
+        methods: {
+            /**查询按钮事件*/
+            queryAction() {
+
+            },
+            /**选择按钮事件*/
+            selectAction() {
+
+            },
+            /**取消按钮事件*/
+            unSelectAction() {
+
+            },
+            /**笼具按钮事件*/
+            cageAction() {
+
+            },
+            /**确定按钮事件*/
+            enterAction() {
+
+            },
+            /**上一页按钮事件*/
+            previousPageAction() {
+
+            },
+            /**下一页按钮事件*/
+            nextPageAction() {
+
+            }
+        },
+        mounted() {
+        },
+        created() {
+        }
+    });
+</script>
+</html>

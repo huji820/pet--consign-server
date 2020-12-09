@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.PositionMapper">
+    <resultMap id="basePosition" type="com.jxywkj.application.pet.model.consign.Position">
+        <id column="position_no" property="positionNo"/>
+        <result column="station_no" property="station.stationNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdate" parameterType="com.jxywkj.application.pet.model.consign.Position">
+        DELETE
+        FROM t_consign_position
+        WHERE station_no = #{position.station.stationNo}
+          AND type = #{position.type};
+        INSERT INTO t_consign_position (station_no, province, city, region, detail_address, longitude,
+                                        latitude, type)
+        VALUES (#{position.station.stationNo},
+                #{position.province},
+                #{position.city},
+                #{position.region},
+                #{position.detailAddress},
+                #{position.longitude},
+                #{position.latitude},
+                #{position.type});
+    </insert>
+
+    <select id="getByStationNoAndType" resultMap="basePosition">
+        SELECT position_no,
+               station_no,
+               province,
+               city,
+               region,
+               detail_address,
+               longitude,
+               latitude,
+               type
+        FROM t_consign_position
+        WHERE station_no = #{stationNo}
+          AND type = #{type};
+    </select>
+</mapper>

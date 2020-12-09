@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationWithdrawMapper">
+
+    <resultMap id="stationWithdrawMap" type="com.jxywkj.application.pet.model.consign.StationWithdraw">
+        <id property="withdrawNo" column="withdraw_no"/>
+        <result property="withdrawTime" column="withdraw_time"/>
+        <result property="staff.staffNo" column="staff_no"/>
+        <result property="amount" column="amount"/>
+        <result property="state" column="state"/>
+        <result property="station.stationNo" column="station_no"/>
+        <result property="station.stationName" column="station_name"/>
+    </resultMap>
+
+    <insert id="saveAStationWithdraw" parameterType="com.jxywkj.application.pet.model.consign.StationWithdraw">
+        INSERT INTO t_station_withdraw
+            (withdraw_no, withdraw_time, staff_no, amount, state, station_no)
+        VALUES (#{stationWithdraw.withdrawNo},
+                #{stationWithdraw.withdrawTime},
+                #{stationWithdraw.staff.staffNo},
+                #{stationWithdraw.amount},
+                #{stationWithdraw.state},
+                #{stationWithdraw.station.stationNo});
+    </insert>
+
+    <update id="updateWithdrawState">
+        UPDATE t_station_withdraw
+        set state = #{state}
+        WHERE withdraw_no = #{stationWithdrawNo}
+    </update>
+
+    <select id="getByWithdrawNo" resultMap="stationWithdrawMap">
+        SELECT *
+        FROM t_station_withdraw
+        WHERE withdraw_no = #{withdrawNo};
+    </select>
+
+    <select id="listByStationNo" resultMap="stationWithdrawMap">
+        SELECT *
+        FROM t_station_withdraw
+        WHERE station_no = #{stationNo}
+        LIMIT #{offset} , #{limit};
+    </select>
+
+    <select id="listStationWithdraw" resultMap="stationWithdrawMap">
+        SELECT a.*, b.station_name
+        FROM t_station_withdraw a
+        join t_consign_station b on a.station_no = b.station_no
+        WHERE 1=1
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(WithdrawNo)">
+            and a.withdraw_no = #{WithdrawNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(stationNo)">
+            and a.station_no = #{stationNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and a.withdraw_time &gt;= #{startDate}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and a.withdraw_time &lt;= concat(#{endDate}, ' 23:59:59')
+        </if>
+        ORDER BY state DESC,withdraw_time DESC
+        LIMIT #{start} , #{end};
+
+    </select>
+    <select id="countStationWithdraw" resultType="java.lang.Integer">
+        select count(1) FROM t_station_withdraw a where 1=1
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(WithdrawNo)">
+            and a.withdraw_no = #{WithdrawNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(stationNo)">
+            and a.station_no = #{stationNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and a.withdraw_time &gt;= #{startDate}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and a.withdraw_time &lt;= concat(#{endDate}, ' 23:59:59')
+        </if>
+    </select>
+</mapper>

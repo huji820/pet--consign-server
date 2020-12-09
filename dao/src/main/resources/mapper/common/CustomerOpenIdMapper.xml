@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.CustomerOpenIdMapper">
+    <resultMap id="baseCustomerOpenId" type="com.jxywkj.application.pet.model.common.CustomerOpenId">
+        <result property="customer.customerNo" column="customer_no"/>
+        <result property="appType" column="app_type"/>
+        <result property="openId" column="open_id"/>
+    </resultMap>
+
+    <select id="getByCustomerNoAndType" resultMap="baseCustomerOpenId">
+        SELECT customer_no , app_type , open_id FROM t_customer_openid WHERE customer_no = #{customerNo} AND app_type = #{appType};
+    </select>
+
+    <insert id="saveOrUpdate">
+        DELETE FROM t_customer_openid WHERE
+        customer_no = #{customerOpenId.customer.customerNo} AND app_type = #{customerOpenId.appType};
+        INSERT INTO t_customer_openid (customer_no,app_type,open_id)
+         VALUES (#{customerOpenId.customer.customerNo} ,
+          #{customerOpenId.appType},
+          #{customerOpenId.openId});
+    </insert>
+</mapper>

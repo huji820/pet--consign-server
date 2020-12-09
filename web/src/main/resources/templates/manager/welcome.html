@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>后台管理系统</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <script src="/static/js/jQuery-2.2.0.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="/static/js/Chart.min.js"></script>
+    <script th:inline="javascript">
+        $(function () {
+            Canvas1();
+            $('.note').on('click', window.parent.$.learuntab.addNote);
+            $('.dashboard-stats').on('click', window.parent.$.learuntab.addCard);
+        });
+
+        function Canvas1() {
+            var data = [[${performances}]];
+
+            randomScalingFactor = function () { return Math.round(Math.random() * 100) },
+                labels = [],
+                Amount = [];
+            for (var i = 0; i < data.length; i++) {
+                labels.push(data[i]['day']);
+                Amount.push(data[i]['amount']);
+            }
+            var lineChartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        fillColor: "#578ebe",
+                        data: Amount
+                    }
+                ]
+            }
+            var ctx = document.getElementById("Canvas1").getContext("2d");
+            window.myLine = new Chart(ctx).Bar(lineChartData, {
+                bezierCurve: false,
+            });
+        }
+    </script>
+    </head>
+    <div>
+        <div class="rows" style="margin-bottom: 0.8%; margin-top: 20px; overflow: hidden;">
+            <div style="float: left; width: 100%;">
+                <div style="display:flex;justify-content:center; height: 100%; border: 1px solid #e6e6e6; overflow: hidden;">
+                    <div class="dashboard-stats">
+                        <div class="dashboard-stats-item" style="background-color: #98aaaf;">
+                            <div class="stat-icon">
+                                <i class="iconmain icon-caiwu"></i>
+                            </div>
+                            <h2 class="m-top-none" id="dsh">[[${simpleReport.stationNum}]]<span></span></h2>
+                            <h5>站点数</h5>
+                        </div>
+                    </div>
+                    <div class="dashboard-stats">
+                        <div class="dashboard-stats-item" style="background-color: #4f5c65; margin-bottom: 0px;">
+                            <div class="stat-icon">
+                                <i class="iconmain icon-sale"></i>
+                            </div>
+                            <h2 class="m-top-none">[[${simpleReport.businessNum}]]<span></span></h2>
+                            <h5>驿站数</h5>
+                        </div>
+                    </div>
+                    <div class="dashboard-stats">
+                        <div class="dashboard-stats-item" style="background-color: #949FB1; margin-bottom: 0px;">
+                            <div class="stat-icon">
+                                <i class="iconmain icon-summary"></i>
+                            </div>
+                            <h2 class="m-top-none">[[${simpleReport.customerNum}]]<span></span></h2>
+                            <h5>用户数</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="rows" style="margin-bottom: 0.8%; overflow: hidden;">
+            <div style="float: left; width: 100%;">
+                <div style="height: 290px; border: 1px solid #e6e6e6; ">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">业绩墙(单位:元)</div>
+                            <div class="panel-body">
+                                <canvas id="Canvas1" style="height: 230px; width: 100%;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <style>
+    .dashboard-stats {float:left;width:30%;}
+    .dashboard-stats-item {position:relative;overflow:hidden;color:#fff;cursor:pointer;height:105px;margin-right:10px;margin-bottom:10px;padding-left:15px;padding-top:20px;}
+    .dashboard-stats-item .m-top-none {margin-top:5px;}
+    .dashboard-stats-item h2 {font-size:28px;font-family:inherit;line-height:1.1;font-weight:500;padding-left:70px;}
+    .dashboard-stats-item h2 span {font-size:12px;padding-left:5px;}
+    .dashboard-stats-item h5 {font-size:12px;font-family:inherit;margin-top:1px;line-height:1.1;padding-left:70px;}
+    .dashboard-stats-item .stat-icon {position:absolute;top:18px;font-size:50px;opacity:.3;}
+    .dashboard-stats i {width:50px;padding:20px;font-size:50px;text-align:center;color:#fff;height:50px;border-radius:10px;}
+    .panel-default >  {color:#777;background-color: #fbffff;border-color:#e6e6e6;padding:10px 10px;}
+    .panel-default >  {padding:10px;padding-bottom:0px;}
+    .panel-default > .panel-body ul {overflow:hidden;padding:0;margin:0px;margin-top:-5px;}
+    .panel-default > .panel-body ul li {font-size:12px;line-height:27px;list-style-type:none;white-space:nowrap;text-overflow:ellipsis;}
+    .panel-default > .panel-body ul li .time {color:#a1a1a1;float:right;padding-right:5px;}
+    .nav-phb li {float:left;font-size:16px;margin-right:8px;border-top:2px solid transparent;}
+    .nav-phb li a {-webkit-border-radius:2px;-moz-border-radius:2px;border-radius:2px;margin-right:0;padding:5px 10px;margin-left:-10px;}
+    .nav-phb li a:hover {background:none;border-color:transparent;}
+    .nav-phb li {border-bottom:3px solid #00b8ec;margin-top:0;position:relative;}
+    .nav-phb li.active a {border-top:none;font-weight:400;}
+    .nav-phb li.active a:hover {background:#fff;border-color:#d4d4d4 #d4d4d4 transparent;}
+    .tab-pane ul li {cursor:pointer;padding:8px 0;font-size:14px;border-bottom:1px solid #eee;}
+    </style>
+    </body>
+</html>

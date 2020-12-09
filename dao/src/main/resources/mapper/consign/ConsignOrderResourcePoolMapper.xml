@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignOrderResourcePoolMapper">
+
+    <resultMap id="resourcePoolResult" type="com.jxywkj.application.pet.model.consign.OrderResourcePool">
+        <id property="resourcePoolNo" column="resourcepool_no"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="node" column="node"/>
+        <result property="delayTime" column="delay_time"/>
+        <result property="remarks" column="remarks"/>
+        <result property="stationNo" column="station_no"/>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="resourcePoolNo" parameterType="com.jxywkj.application.pet.model.consign.OrderResourcePool">
+        INSERT INTO t_consign_order_resource_pool
+          (
+            order_no,
+            node,
+            `delay_time`,
+            `remarks`,
+            station_no
+          )
+        values (
+          #{orderNo},
+          #{node},
+          #{delayTime},
+          #{remarks},
+          #{stationNo}
+          );
+    </insert>
+
+    <delete id="deleteByOrderNoAndNode">
+        DELETE FROM t_consign_order_resource_pool
+        WHERE order_no = #{orderNo}
+        AND node = #{node};
+    </delete>
+
+    <select id="listByOrderNoAndNode" resultType="com.jxywkj.application.pet.model.consign.OrderResourcePool">
+        SELECT * FROM t_consign_order_resource_pool
+        WHERE order_no = #{orderNo}
+        AND node = #{node};
+    </select>
+
+    <delete id="deleteById">
+        DELETE FROM t_consign_order_resource_pool
+        WHERE resourcepool_no = #{id};
+    </delete>
+</mapper>

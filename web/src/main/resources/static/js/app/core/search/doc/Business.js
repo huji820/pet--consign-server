@@ -1,0 +1,51 @@
+Ext.define('core.search.doc.Business', {
+    extend: 'Ext.window.Window',
+    alias: 'widget.search_business',
+    width: 700,
+    height: 350,
+    title: '商家检索',
+    layout: 'border',
+    items: [{
+        region: 'north',
+        xtype: 'form',
+        layout: 'column',
+        items: [{
+            xtype: 'textfield',
+            name: 'businessName',
+            fieldLabel: '商家名称'
+        }, {
+            xtype: 'button',
+            action: 'query',
+            uri: '/admin/business/info',
+            text: '查询'
+        }]
+    }, {
+        region: 'center',
+        xtype: 'grid',
+        autoInsert: false,
+        allowInsert: false,
+        pagination: true,
+        fields: [{
+            name: 'businessNo',
+            text: '商家编号'
+        }, {
+            name: 'businessName',
+            text: '商家名称'
+        }, {
+            name: 'province',
+            text: '省'
+        }, {
+            name: 'city',
+            text: '市'
+        }, {
+            name: 'contacts',
+            text: '联系人'
+        }, {
+            name: 'phone',
+            text: '联系电话'
+        }, {
+            name: 'address',
+            text: '联系地址'
+        }]
+    }]
+});

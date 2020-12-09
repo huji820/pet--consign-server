@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderTakeDetailMapper">
+    <resultMap id="baseTakeDetail" type="com.jxywkj.application.pet.model.consign.OrderTakeDetail">
+        <id column="take_detail_no" property="takeDetailNo"/>
+        <result column="order_no" property="order.orderNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdate">
+        DELETE
+        FROM t_consign_take_detail
+        WHERE order_no = #{orderTakeDetail.order.orderNo};
+        INSERT INTO t_consign_take_detail (order_no,
+                                           contact,
+                                           phone,
+                                           province,
+                                           city,
+                                           region,
+                                           detail_address,
+                                           longitude,
+                                           latitude,
+                                           `code`)
+        VALUES (#{orderTakeDetail.order.orderNo},
+                #{orderTakeDetail.contact},
+                #{orderTakeDetail.phone},
+                #{orderTakeDetail.province},
+                #{orderTakeDetail.city},
+                #{orderTakeDetail.region},
+                #{orderTakeDetail.detailAddress},
+                #{orderTakeDetail.longitude},
+                #{orderTakeDetail.latitude},
+                #{orderTakeDetail.code});
+    </insert>
+
+    <select id="getByOrderNo" resultMap="baseTakeDetail">
+        SELECT take_detail_no,
+               order_no,
+               contact,
+               phone,
+               province,
+               city,
+               region,
+               detail_address,
+               longitude,
+               latitude,
+               `code`
+        FROM t_consign_take_detail
+        WHERE order_no = #{orderNo};
+    </select>
+</mapper>

@@ -1,0 +1,26 @@
+body{
+    width: 90%;
+    margin: 0 auto;
+}
+a{
+    text-decoration: none;
+    color: #000000;
+}
+a:hover{
+    color: #0000FF;
+}
+h2{
+    text-align: center;
+}
+.logo{
+    width: 20%;
+    float:left;
+}
+.logoExplain{
+    display: inline-block;
+    float: right;
+    width: 80%;
+}
+.clear{
+    clear: both;
+}

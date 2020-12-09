@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderFlowTrendMapper">
+    <select id="listByOrderNo" resultType="com.jxywkj.application.pet.model.consign.OrderFlowTrend">
+        SELECT main.*,
+               station.station_name,
+               business.business_name
+        FROM (
+                 SELECT a.*
+                 FROM t_station_balance_flow a
+                          JOIN (
+                     SELECT bill_no
+                     FROM t_consign_order_spread
+                     WHERE order_no = #{orderNo}
+                       AND state = '已支付'
+                 ) b ON a.link_no = b.bill_no
+                 WHERE a.flow_type = 'orderPremium'
+                 UNION ALL
+                 SELECT *
+                 FROM t_station_balance_flow
+                 WHERE link_no = #{orderNo}
+                 UNION ALL
+                 SELECT *
+                 FROM t_business_balance_flow
+                 WHERE link_no = #{orderNo}
+             ) main
+                 LEFT JOIN t_consign_station station ON main.station_no = station.station_no
+                 LEFT JOIN t_business_business business ON main.station_no = business.business_no
+    </select>
+</mapper>

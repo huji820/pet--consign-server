@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.BusinessBalanceFlowMapper">
+    <resultMap id="baseBusinessBalanceFlowVo" type="com.jxywkj.application.pet.model.consign.vo.BusinessBalanceFlowVo">
+        <id column="flow_no" property="flowNo"/>
+        <result column="business_no" property="business.businessNo"/>
+        <result column="date_time" property="dateTime"/>
+        <result column="flow_type" property="flowType"/>
+        <result column="flow_amount" property="flowAmount"/>
+        <result column="balance" property="balance"/>
+        <result column="link_no" property="linkNo"/>
+        <result column="bill_no" property="billNo"/>
+
+        <association property="consignInsureFlow" javaType="com.jxywkj.application.pet.model.consign.ConsignInsureFlow">
+            <id column="insure_insure_no" property="insureNo"/>
+            <result column="insure_order_no" property="order.orderNo"/>
+            <result column="insure_date_time" property="dateTime"/>
+            <result column="insure_spend_amount" property="insureAmount"/>
+            <result column="insure_insure_amount" property="insureAmount"/>
+        </association>
+
+        <collection property="businessBalanceFlowList"
+                    ofType="com.jxywkj.application.pet.model.business.BusinessBalanceFlow">
+            <id column="business_flow_no" property="flowNo"/>
+            <result column="business_business_no" property="business.businessNo"/>
+            <result column="business_business_name" property="business.businessName"/>
+            <result column="business_date_time" property="dateTime"/>
+            <result column="business_flow_type" property="flowType"/>
+            <result column="business_flow_amount" property="flowAmount"/>
+            <result column="business_balance" property="balance"/>
+            <result column="business_link_no" property="linkNo"/>
+            <result column="business_bill_no" property="billNo"/>
+        </collection>
+
+        <collection property="stationBalanceFlowList"
+                    ofType="com.jxywkj.application.pet.model.consign.StationBalanceFlow">
+            <id column="station_flow_no" property="flowNo"/>
+            <result column="station_station_no" property="station.stationNo"/>
+            <result column="station_station_name" property="station.stationName"/>
+            <result column="station_date_time" property="dateTime"/>
+            <result column="station_flow_type" property="flowType"/>
+            <result column="station_flow_amount" property="flowAmount"/>
+            <result column="station_link_no" property="linkNo"/>
+            <result column="station_bill_no" property="billNo"/>
+        </collection>
+    </resultMap>
+
+    <insert id="save">
+        INSERT INTO t_business_balance_flow (`business_no`, `date_time`, `flow_type`, `flow_amount`, `balance`,
+                                             `bill_no`,
+                                             `link_no`)
+        VALUES (#{businessBalanceFlow.business.businessNo},
+                #{businessBalanceFlow.dateTime},
+                #{businessBalanceFlow.flowType},
+                #{businessBalanceFlow.flowAmount},
+                #{businessBalanceFlow.balance},
+                #{businessBalanceFlow.billNo},
+                #{businessBalanceFlow.linkNo});
+    </insert>
+
+    <select id="listByStationNo" resultMap="baseBusinessBalanceFlowVo">
+        SELECT
+        a.flow_no,
+        a.business_no,
+        a.date_time,
+        a.flow_type,
+        a.flow_amount,
+        a.balance,
+        a.link_no,
+        a.bill_no,
+        b.flow_no AS business_flow_no,
+        b.business_no AS business_business_no,
+        e.business_name AS business_business_name,
+        b.date_time AS business_date_time,
+        b.flow_type AS business_flow_type,
+        b.flow_amount AS business_flow_amount,
+        b.link_no AS business_link_no,
+        b.bill_no AS business_bill_no,
+        c.flow_no AS station_flow_no,
+        c.station_no AS station_station_no,
+        f.station_name AS station_station_name,
+        c.date_time AS station_date_time,
+        c.flow_type AS station_flow_type,
+        c.flow_amount AS station_flow_amount,
+        c.link_no AS station_link_no,
+        c.bill_no AS station_bill_no,
+        d.insure_no AS insure_insure_no,
+        d.order_no AS insure_order_no,
+        d.date_time AS insure_date_time,
+        d.spend_amount AS insure_spend_amount,
+        d.insure_amount AS insure_insure_amount
+        FROM
+        t_business_balance_flow a
+        LEFT JOIN t_business_balance_flow b ON a.bill_no = b.bill_no AND a.flow_no != b.flow_no
+        LEFT JOIN t_station_balance_flow c ON a.bill_no = c.bill_no
+        LEFT JOIN t_consign_insure_flow d ON a.bill_no = d.order_no
+        LEFT JOIN t_business_business e ON b.business_no = e.business_no
+        LEFT JOIN t_consign_station f ON c.station_no = f.station_no
+        JOIN (
+        SELECT flow_no FROM t_business_balance_flow
+        WHERE business_no = #{businessNo}
+        <if test="limit != 0">
+            LIMIT #{offset} , #{limit};
+        </if>
+        ) filter ON a.flow_no = filter.flow_no
+    </select>
+
+</mapper>

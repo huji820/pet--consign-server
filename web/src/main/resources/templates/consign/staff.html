@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>员工管理</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        .fit {
+            padding: 0px;
+            margin: 0px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <div>
+        <el-container style="height: 800px; border: 1px solid #eee">
+            <el-aside width="200px" style="background-color: rgb(238, 241, 246)">
+                <el-menu
+                        class="el-menu-vertical-demo">
+                    <el-submenu index="1">
+                        <template slot="title">
+                            <i class="el-icon-setting"></i>
+                            <span>岗位管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="1-1" @click="showInsterPostDialog">
+                                <el-tag effect="dark">新增岗位</el-tag>
+                            </el-menu-item>
+                            <el-menu-item index="1-2">
+                                <el-tag effect="dark" @click="showPostDialog">删除岗位</el-tag>
+                            </el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <template v-for="(item,key,index) in postData ">
+                        <!--(key+1)+''-->
+                        <el-menu-item :index=(key+1)+'' @click="listStaffByPost(item.postName)">
+                            <span slot="title">{{item.postName}}</span>
+                        </el-menu-item>
+
+                    </template>
+                </el-menu>
+
+            </el-aside>
+
+            <el-container>
+                <el-header style="text-align: left; font-size: 12px;margin-top: 30px">
+                    <el-form :inline="true" :model="staff">
+                        <el-form-item label="员工电话">
+                            <el-input v-model="phone" placeholder="员工电话"></el-input>
+                        </el-form-item>
+                        <el-form-item label="员工编号">
+                            <el-input v-model="staffNo" placeholder="员工编号"></el-input>
+                        </el-form-item>
+                        <el-form-item label="员工名称">
+                            <el-input v-model="staffName" placeholder="员工名称"></el-input>
+                        </el-form-item>
+                        <!--      <el-form-item label="员工职位">
+                                  <el-input v-model="staff.staffPost" placeholder="员工职位"></el-input>
+                              </el-form-item>-->
+                        <el-form-item>
+                            <el-button size="small" type="primary" @click="listStaff">查询</el-button>
+                            <el-button size="small" type="primary" @click="showStaffInsertDialog">新增员工</el-button>
+                            <el-button size="small" type="primary"  @click="showInsterPostDialog">新增岗位</el-button>
+                            <el-button size="small" type="primary" @click="showPostDialog">管理岗位</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-header>
+
+                <el-main>
+                    <el-table
+                            :data="staffTableData"
+                            stripe
+                            border
+                            :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                            :cell-style="{'text-align': 'center'}"
+                            :max-height="maxHeight">
+                        <el-table-column
+                                prop="staffNo"
+                                label="员工编号"
+                        ></el-table-column>
+                        <el-table-column
+                                prop="sex"
+                                label="性别"
+                        ></el-table-column>
+                        <el-table-column
+                                prop="staffName"
+                                label="员工名称"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                                prop="phone"
+                                label="手机号码"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                                prop="post.postName"
+                                label="岗位"
+                        >
+                        </el-table-column>
+
+                        <el-table-column
+                                label="操作"
+                                width=300px>
+                            <template slot-scope="scope">
+                                <el-button @click="showStaffUpdateDialog(scope.row)" type="primary" size="small">编辑
+                                </el-button>
+                                <el-button @click="deleteStaff(scope.row)" type="danger" size="small">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                </el-main>
+            </el-container>
+        </el-container>
+
+        <!--员工修改-->
+        <el-dialog
+                :visible.sync="staffDialog"
+                @closed="cleanStaff"
+                id="consign"
+                width="350px">
+            <el-form ref="form" :model="staff" label-width="80px">
+                <el-input style="width:300px" placeholder="姓名" v-model="staff.staffName">
+                    <template slot="prepend">姓&nbsp;&nbsp;&nbsp;名</template>
+                </el-input>
+                <el-input style="width:300px" placeholder="电话" v-model="staff.phone">
+                    <template slot="prepend">电&nbsp;&nbsp;&nbsp;话</template>
+                </el-input>
+                <el-input style="width:300px" placeholder="性别" v-model="staff.staffSex">
+                    <template slot="prepend">性&nbsp;&nbsp;&nbsp;别</template>
+                    <el-select size="mini" v-model="staff.staffSex" placeholder="性别">
+                        <el-option
+                                v-for="item in [{label: '男', value: 1}, {label: '女', value: 2}]"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-input>
+                <!--<el-select size="mini" v-model="staff.staffSex" placeholder="性别">
+                    <el-option
+                            v-for="item in [{label: '男', value: 1}, {label: '女', value: 2}]"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                    </el-option>
+                </el-select>-->
+                <el-input v-show="staffDialogState==0" style="width:300px" placeholder="密码" v-model="staff.pwd">
+                    <template slot="prepend">密&nbsp;&nbsp;&nbsp;码</template>
+                </el-input>
+                <div class="el-input el-input-group el-input-group--prepend" style="width: 300px;">
+                    <div class="el-input-group__prepend">岗&nbsp;&nbsp;&nbsp;位</div>
+                    <el-select style="width:218px" v-model="staff.staffPost" placeholder="选择岗位">
+                        <el-option
+                                v-for="item in postData"
+                                :key="item.postNo"
+                                :label="item.postName"
+                                :value="item.postNo">
+                        </el-option>
+                    </el-select>
+                </div>
+                <!-- <el-select  style="width:200px" v-model="staff.staffPost" placeholder="选择岗位">
+                     <el-option
+                             v-for="item in postData"
+                             :key="item.postName"
+                             :label="item.postName"
+                             :value="item.postName">
+                     </el-option>
+                 </el-select>-->
+
+            </el-form>
+            <el-button style="width:300px" type="primary" @click="insertOrUpdateStaff">确 定</el-button>
+        </el-dialog>
+
+        <!--  岗位管理-->
+        <el-dialog
+                :visible.sync="postDialog"
+                id="consign"
+                width="500px">
+            <el-table
+                    :data="postData"
+                    stripe
+                    border
+                    :header-cell-style="{'background':'#F0F0F0','text-align': 'center'}"
+                    :cell-style="{'text-align': 'center'}"
+                    :max-height="maxHeight">
+                <el-table-column
+                        prop="postNo"
+                        label="岗位编号"
+                ></el-table-column>
+                <el-table-column
+                        prop="postName"
+                        label="岗位名称"
+                ></el-table-column>
+                <el-table-column
+                        label="操作"
+                        width=250px>
+                    <template slot-scope="scope">
+                        <el-button @click="showStaffUpdateDialog(scope.row)" type="primary" size="small">编辑</el-button>
+                        <el-button @click="deletePost(scope.row)" type="danger" size="small">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-dialog>
+        <!--新增岗位-->
+        <el-dialog
+                :visible.sync="insterPostDialog"
+                id="consign"
+                width="550px">
+            <el-form ref="form" :model="staff" label-width="80px">
+                <el-input style="width:500px" placeholder="岗位名称" v-model="post.postName">
+                    <template slot="prepend">岗位名称</template>
+                </el-input>
+                <p style="color: indianred">勾选需要开通的权限</p>
+
+                <div class="table-body" v-for="(partition,partitionIndex) in powerInfo" :key="partitionIndex">
+                    <div class="selection">
+                        <p><el-checkbox :indeterminate="partition.indeterminate" v-model="partition.selected" @change="handleCheckedCountryAllChange(partitionIndex,partition.partitionId,$event)" :key="partitionIndex">
+                            {{ partition.partitionName }}
+                        </el-checkbox></p>
+                    </div>
+                    <div style="margin-left: 2em">
+                        <el-checkbox v-for="power in partition.power" v-model="power.selected" @change="handleCheckedCountryChange(partitionIndex,power.id,partition.partitionId,$event)" :label="power" :key="power.id">
+                            {{power.powerName}}
+                        </el-checkbox>
+                    </div>
+                </div>
+            </el-form>
+            <el-button style="display:block;width: 250px;margin:0px auto" type="primary" @click="insertPost">确 定</el-button>
+        </el-dialog>
+
+    </div>
+
+</div>
+</body>
+<script src="//unpkg.com/vue/dist/vue.js"></script>
+<script src="//unpkg.com/element-ui@2.13.0/lib/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                //新增还是更新的标志位  0-新增 1-更新
+                staffDialogState: 0,
+                postDialog: false,
+                staffDialog: false,
+                insterPostDialog: false,
+                maxHeight: 10,
+                currentPage: 1,
+                staffTableData: [],
+                //岗位
+                postData: [],
+                post: {
+                    postNo: '',
+                    postName: ''
+                },
+                staff: {
+                    phone: '',
+                    staffNo: '',
+                    staffName: '',
+                    staffPost: '',
+                    staffSex: '',
+                    pwd: ''
+                },
+                phone: '',
+                staffNo: '',
+                staffName: '',
+                loading: false,
+                totalCount: 0,
+                // ------
+
+                powerInfo:[
+                    {partitionName:'支付权限',selected:false,partitionId:1,isIndeterminate:false,
+                        power:[
+                            {id:"1001",powerName:"改价",selected:false},
+                            {id:"1002",powerName:"补价",selected:false},
+                            {id:"1003",powerName:"退款",selected:false}
+                        ]
+                    },
+                    {partitionName:"订单权限修改",selected:false,partitionId:2,isIndeterminate:false,
+                        power:[
+                            {id:"2001",powerName:"出港",selected:false},
+                            {id:"2002",powerName:"揽件",selected:false},
+                            {id:"2003",powerName:"备注",selected:false},
+                            {id:"2004",powerName:"分配订单",selected:false},
+                            {id:"2005",powerName:"打印订单",selected:false},
+                            {id:"2006",powerName:"签收",selected:false},
+                            {id:"2007",powerName:"到达",selected:false},
+                            {id:"2008",powerName:"临派",selected:false}
+                        ]
+                    },
+                    {partitionName:"订单查询权限",selected:false,partitionId:3,isIndeterminate:false,
+                        power:[
+                            {id:"3001",powerName:"查询订单",selected:false},
+                            {id:"3002",powerName:"扫描",selected:false},
+                            {id:"3003",powerName:"订单详情",selected:false}
+                        ]
+                    },
+                    {partitionName:"申请权限",selected:false,partitionId:4,isIndeterminate:false,
+                        power:[
+                            {id:"4001",powerName:"宠物店",selected:false},
+                            {id:"4002",powerName:"员工加入",selected:false}
+                        ]
+                    },
+                    {partitionName:"审批权限",selected:false,partitionId:5,isIndeterminate:false,
+                        power:[
+                            {id:"5001",powerName:"驳回",selected:false},
+                            {id:"5002",powerName:"批准",selected:false}
+                        ]
+                    }
+                ],
+                isCheckAll:false,
+                setDistributorDialog:false,
+                cancelDistributorDialog:false,
+                indeterminate:false,
+                partitionSelected:[]
+            }
+        },
+        methods: {
+
+
+            handleCheckedCountryAllChange(index, topId, e) {
+                this.powerInfo[index].selected = e;
+                if (e == false) this.powerInfo[index].indeterminate = false;
+                var childrenArray = this.powerInfo[index].power;
+                if (childrenArray)
+                    for (var i = 0; i < childrenArray.length; i++)
+                        childrenArray[i].selected = e;
+
+                this.getIsCheckAll();
+            },
+            handleCheckedCountryChange(topIndex, sonId, topId, e){//三级change事件
+                var childrenArray = this.powerInfo[topIndex].power
+                var tickCount = 0, unTickCount = 0, len = childrenArray.length
+                for(var i = 0; i < len; i++){
+                    if(sonId == childrenArray[i].id) childrenArray[i].selected = e
+                    if(childrenArray[i].selected == true) tickCount++
+                    if(childrenArray[i].selected == false) unTickCount++
+                }
+                if(tickCount == len) {//三级级全勾选
+                    this.powerInfo[topIndex].selected = true
+                    this.powerInfo[topIndex].indeterminate = false
+                } else if(unTickCount == len) {//三级级全不勾选
+                    this.powerInfo[topIndex].selected = false
+                    this.powerInfo[topIndex].indeterminate = false
+                } else {
+                    this.powerInfo[topIndex].selected = false
+                    this.powerInfo[topIndex].indeterminate = true //添加二级不确定状态
+                }
+                this.getIsCheckAll()
+            },
+            getSelectItem() {
+                for (var i=0; i<this.powerInfo.length;i++) {
+                    for (var j=0; j<this.powerInfo[i].power.length;j++) {
+                        if (this.powerInfo[i].power[j].selected == true) {
+                            this.partitionSelected.push(this.powerInfo[i].power[j].id)
+                            this.powerInfo[i].selected = false;
+                            this.powerInfo[i].indeterminate = false;
+                            this.powerInfo[i].power[j].selected = false;
+                        }
+                    }
+                }
+            }
+            ,
+            getIsCheckAll() {
+                var tickCount = 0, unTickCount = 0, ArrLength=this.powerInfo.length;
+                for(var j=0; j<ArrLength;j++) {
+                    if (this.powerInfo[j].selected == true) { tickCount++;}
+                    if (this.powerInfo[j].selected == false) {unTickCount++;}
+                }
+                if (tickCount == ArrLength) {
+                    this.isCheckAll = true;
+                    this.indeterminate = false;
+                }
+                else if (unTickCount == ArrLength) {
+                    this.isCheckAll = false;
+                    this.indeterminate = false;
+                }
+                else {
+                    this.isCheckAll = false;
+                    this.indeterminate = true;
+                }
+            },
+
+            // --------------------- 改
+            deletePost(post){
+                let that = this;
+                //获取该岗位的员工
+                this.listStaffByPost(post.postName);
+                if(this.staffTableData.length>0){
+                    axios.put("/consign/post/deletePost", "postNo=" + post.postNo).then((res) => {
+                        if (res.status === 200) {
+                            this.$message.success("淘汰成功");
+                            this.listStaff();
+                        } else {
+                            this.$message.error("请求失败！");
+                        }
+                    }).catch((err) => {
+                        this.$message.error("请求失败！");
+                    });
+                }else {
+                    const h = this.$createElement;
+                    this.$notify({
+                        title: '标题名称',
+                        type: 'warning',
+                        message: h('i', { style: 'color: teal'}, '该岗位还存在职员不可删除')
+                    });
+                }
+
+            },
+            cleanPost() {
+                this.post.postNo = '';
+                this.post.postName = '';
+            },
+            //新增岗位
+            insertPost() {
+                this.getSelectItem()
+
+                axios.post('/consign/post',
+                    "postName=" + this.post.postName +
+                    "&partitionSelected=" + this.partitionSelected
+                ).then((res) => {
+                    if (res.status === 200) {
+                        this.$message.success("新增成功！");
+                        this.partitionSelected = [];
+                        this.insterPostDialog = false;
+                        this.cleanPost();
+                        this.listPost();
+                    } else {
+                        this.$message.error("新增失败！");
+                        this.insterPostDialog = false;
+                        this.listPost();
+                        this.cleanPost();
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                    this.insterPostDialog = false;
+                    this.listPost();
+                    this.cleanPost();
+                });
+            },
+            showInsterPostDialog() {
+                this.insterPostDialog = true;
+            },
+            showPostDialog() {
+                this.postDialog = true;
+            },
+            //查询职位所有的员工
+            listStaffByPost(post) {
+                this.cleanStaff();
+                this.staff.staffPost = post;
+                this.listStaff();
+                // this.$message.success(post);
+            },
+            //新增弹窗
+            showStaffInsertDialog() {
+                this.staffDialogState = 0;
+                this.staffDialog = true;
+
+            },
+            //更新的弹窗
+            showStaffUpdateDialog(staff) {
+                this.staffDialogState = 1;
+
+                this.staffDialog = true;
+                this.staff.phone = staff.phone;
+                this.staff.staffName = staff.staffName;
+                this.staff.staffPost = staff.post;
+                this.staff.staffNo = staff.staffNo;
+                this.staff.staffSex = staff.sex;
+            },
+            //更新员工
+            insertOrUpdateStaff() {
+                //判断是更新还是新增
+                if (this.staffDialogState == 1) {
+                    axios.put('/consign/staff/update', "phone=" + this.staff.phone +
+                        "&staffName=" + this.staff.staffName +
+                        "&staffSex=" + this.staff.staffSex +
+                        "&staffNo=" + this.staff.staffNo
+                    ).then((res) => {
+                        if (res.status === 200) {
+                            this.$message.success("修改成功！");
+                            this.staffDialog = false;
+                            this.cleanStaff();
+                            this.listStaff();
+                        } else {
+                            this.$message.error("请求失败！");
+                            this.staffDialog = false;
+                            this.cleanStaff();
+                        }
+                    }).catch((err) => {
+                        this.$message.error("请求失败！");
+                        this.staffDialog = false;
+                        this.cleanStaff();
+                    });
+                } else {
+                    axios.post('/consign/staff/insert',
+                        "phone=" + this.staff.phone +
+                        "&pwd=" + this.staff.pwd +
+                        "&staffName=" + this.staff.staffName +
+                        "&staffPost=" + this.staff.staffPost +
+                        "&staffSex=" + this.staff.staffSex
+                    ).then((res) => {
+                        if (res.status === 200) {
+                            this.$message.success("新增成功！");
+                            this.listStaff();
+                        } else {
+                            this.$message.error("新增失败！");
+                        }
+                        this.staffDialog = false;
+                        this.cleanStaff();
+                    }).catch((err) => {
+                        this.$message.error("请求失败！");
+                        this.staffDialog = false;
+                        this.cleanStaff();
+                    });
+                }
+
+            },
+            handleSizeChange() {
+
+            },
+            handleCurrentChange() {
+
+            },
+            cleanStaff() {
+                this.staff.phone = '';
+                this.staff.staffName = '';
+                this.staff.staffPost = '';
+                this.staff.staffSex = '';
+                this.staff.staffNo = '';
+                this.staff.pwd = '';
+            },
+            listPost() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/consign/post', {params: that.staff}
+                ).then((res) => {
+                    if (res.status === 200) {
+                        that.postData = res.data.data;
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            listStaff() {
+                let that = this;
+                that.loading = true;
+                // 获取所有的员工档案
+                axios.get('/consign/staff', {params: that.staff}
+                ).then((res) => {
+                    if (res.status === 200) {
+                        that.staffTableData = res.data.data;
+                        this.staff.staffPost = '';
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            },
+            deleteStaff(row) {
+                let that = this;
+                axios.put('/consign/staff/deleteStaff', "&staffNo=" + row.staffNo).then((res) => {
+                    if (res.status === 200) {
+                        this.$message.success("淘汰成功");
+                        this.listStaff();
+                    } else {
+                        this.$message.error("请求失败！");
+                    }
+                }).catch((err) => {
+                    this.$message.error("请求失败！");
+                });
+            }
+        },
+        mounted() {
+            this.listStaff();
+            this.listPost();
+        },
+
+        created() {
+            this.maxHeight = document.body.clientHeight - 150;
+        }
+    });
+</script>
+</html>

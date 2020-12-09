@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>宠物笼配置</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="margin-top: 10px">
+        <el-header>
+            <el-radio v-model="selectedType" label="3" border @change="radioChangeAction()">单飞航空箱</el-radio>
+            <el-radio v-model="selectedType" label="4" border @change="radioChangeAction()">随机航空箱</el-radio>
+            <el-radio v-model="selectedType" label="2" border @change="radioChangeAction()">火车笼</el-radio>
+            <el-radio v-model="selectedType" label="5" border @change="radioChangeAction()">大巴笼</el-radio>
+        </el-header>
+        <el-container>
+            <el-header style="text-align: left; font-size: 12px;">
+                <h2>笼具配置</h2>
+            </el-header>
+            <el-main>
+                <el-alert
+                        style="margin: 5px;width: 500px"
+                        title="警告"
+                        type="warning"
+                        description="此操作将会覆盖修改该站点该运输路线的所有笼具配置"
+                        show-icon>
+                </el-alert>
+                <el-form label-position="right" :inline="true">
+                    <el-form-item>
+                        <el-button size="small" type="primary"
+                                   @click="openDialogAction(dialog,data.petCage)">新增梯度
+                        </el-button>
+                        <el-button size="warning" type="small"
+                                   @click="deleteLastLine(data.petCage)">删除尾行
+                        </el-button>
+                        <el-button size="danger" type="small"
+                                   @click="data.petCage = []">清空梯度
+                        </el-button>
+                        <el-button size="small" type="primary" @click="updateAllTrainCageConfig()">保存数据
+                        </el-button>
+                    </el-form-item>
+
+                </el-form>
+                <el-table :data="data.petCage"
+                          style="width: 100%"
+                          v-loading="data.tableLoading">
+                    <el-table-column
+                            prop="cageName"
+                            label="笼具名称"
+                            width="180">
+                    </el-table-column>
+                    <el-table-column
+                            prop="minWeight"
+                            label="最小运输重量"
+                            width="180">
+                    </el-table-column>
+                    <el-table-column
+                            prop="maxWeight"
+                            label="最大运输重量"
+                            width="180">
+                    </el-table-column>
+                    <el-table-column
+                            prop="cageWeight"
+                            label="笼具重量"
+                            width="180">
+                    </el-table-column>
+                    <el-table-column
+                            prop="cagePrice"
+                            label="笼具价格"
+                            width="180">
+                    </el-table-column>
+                </el-table>
+            </el-main>
+        </el-container>
+        <el-container>
+            <el-header style="text-align: left; font-size: 12px;margin-top: 30px">
+                <h2>加价配置</h2>
+            </el-header>
+            <el-main>
+                <el-alert
+                        style="margin: 5px;width: 500px"
+                        title="修改提示"
+                        type="info"
+                        description="每增加一只宠物所需要额外添加的费用"
+                        show-icon>
+                </el-alert>
+                客户价：
+                <el-input v-model="beyondRetailPrice"
+                          style="margin: 5px;width: 500px"
+                          placeholder="加价金额"
+                          type="number"
+                          @change="updateBeyondPrice"
+                ></el-input>
+                元
+                <br/>
+                合作价：
+                <el-input v-model="beyondJoinPrice"
+                          style="margin: 5px;width: 500px"
+                          placeholder="加价金额"
+                          type="number"
+                          @change="updateBeyondPrice"
+                ></el-input>
+                元
+            </el-main>
+        </el-container>
+    </el-container>
+    <!-- dialog 页面 -->
+    <el-dialog title="新增笼具梯度" :visible.sync="dialog.show" label-width="120px">
+        <el-form :model="dialog" :rules="rules.petCage">
+            <el-form-item label="笼具名称" prop="cageName">
+                <el-input v-model="dialog.cageName"></el-input>
+            </el-form-item>
+            <el-form-item label="最小运输重量(KG)" prop="minWeight">
+                <el-input v-model="dialog.minWeight" :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="最大运输重量(KG)" prop="maxWeight">
+                <el-input v-model="dialog.maxWeight" type="number"></el-input>
+            </el-form-item>
+            <el-form-item label="笼具重量(KG)" prop="cageWeight">
+                <el-input v-model="dialog.cageWeight" type="number"></el-input>
+            </el-form-item>
+            <el-form-item label="笼具金额(元)" prop="cagePrice">
+                <el-input v-model="dialog.cagePrice" type="number"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="dialogCancelAction(dialog)">取 消</el-button>
+            <el-button type="primary" @click="dialogEnterAction(dialog,data.petCage)">确 定
+            </el-button>
+        </div>
+    </el-dialog>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            /**火车笼是否符合验证要求*/
+            let thanMinWeight = (rule, value, callback) => {
+                if (!value) {
+                    return callback(new Error('不能为空'));
+                }
+                if (value <= this.getMaxCageWeight(this.data.petCage)) {
+                    return callback(new Error('不能小于最小重量'));
+                }
+            };
+            return {
+                selectedType: '3',
+                /**页面表格数据*/
+                data: {
+                    // 火车笼
+                    petCage: [],
+                    tableLoading: false,
+                },
+                /**表单验证*/
+                rules: {
+                    // 火车
+                    petCage: {
+                        cageName: {required: true, message: '请输入笼具名称', trigger: 'blur'},
+                        minWeight: {required: true, message: '不能为空', trigger: 'blur'},
+                        maxWeight: {validator: thanMinWeight, trigger: 'blur'},
+                        cageWeight: {required: true, message: '不能为空', trigger: 'blur'},
+                        cagePrice: {required: true, message: '不能为空', trigger: 'blur'}
+                    }
+                },
+                /**dialog数据*/
+                dialog: {
+                    cageName: '',
+                    minWeight: 0,
+                    maxWeight: 0,
+                    cageWeight: 0,
+                    cagePrice: 0,
+                    transportType: 0,
+                    show: false
+                },
+                /**加价数量超出加价金额*/
+                beyondRetailPrice: 0,
+                beyondJoinPrice: 0
+            }
+        },
+        methods: {
+            /**更新所有的笼具配置*/
+            updateAllTrainCageConfig() {
+                if (this.isEmptyArray(this.data.petCage)) {
+                    this.$message({
+                        showClose: true,
+                        message: '请先填写梯度，再更新数据。',
+                        type: 'warning'
+                    });
+                    return;
+                }
+                this.$confirm('确定更新站点所有笼具配置？, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.put('/consign/cage/weight', this.data.petCage).then(res => {
+                        if (res.status === 200 && res.data.code === 200) {
+                            this.$message({
+                                message: '成功修改' + res.data.data + '条数据！',
+                                type: 'success'
+                            });
+                        } else {
+                            this.$message.error('修改失败！');
+                        }
+                    }).catch(err => {
+                        this.$message.error('修改失败！错误信息为：' + err.message);
+                    });
+                }).catch(() => {
+                });
+            },
+            /**radio事件*/
+            radioChangeAction() {
+                // 清空数组
+                this.data.petCage = [];
+                // 将表格设为加载中
+                this.data.tableLoading = true;
+                // 重新获取数据
+                this.getTrainCageConfig();
+                // 初始化dialog数据
+                this.initAllDialogData();
+                // 获取加价配置
+                this.getBeyondPrice();
+            },
+            /**获取笼具配置*/
+            getTrainCageConfig() {
+                axios.get('/consign/cage', {params: {'transportType': this.selectedType}}).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.data.petCage = res.data.data;
+                    } else {
+                        this.$message.error('获取笼配置失败！');
+                    }
+                    this.data.tableLoading = false;
+                }).catch(err => {
+                    this.$message.error('获取笼配置失败！');
+                    this.data.tableLoading = false;
+                });
+            },
+            /**获取加价配置*/
+            getBeyondPrice() {
+                axios.get('/consign/beyondPrice', {params: {'transportType': this.selectedType}}).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        if (res.data.data != null
+                            && res.data.data.retailPrice != null) {
+                            this.beyondRetailPrice = res.data.data.retailPrice;
+                        } else {
+                            this.beyondRetailPrice = 0;
+                        }
+                        
+                        if (res.data.data != null
+                            && res.data.data.joinPrice != null) {
+                            this.beyondJoinPrice = res.data.data.joinPrice;
+                        } else {
+                            this.beyondJoinPrice = 0;
+                        }
+                    } else {
+                        this.$message.error('获取加价配送失败！');
+                    }
+                }).catch(err => {
+                    this.$message.error('获取加价配送失败！');
+                })
+            },
+            /**更新加价配置*/
+            updateBeyondPrice() {
+                if (this.beyondRetailPrice == null
+                    || this.beyondRetailPrice === ''
+                    || this.beyondJoinPrice == null
+                    || this.beyondJoinPrice === ''
+                ) {
+                    this.$message.error('请输入正确的金额');
+                    return;
+                }
+                axios.put('/consign/beyondPrice', {
+                    'transportType': this.selectedType,
+                    'retailPrice': this.beyondRetailPrice,
+                    'joinPrice': this.beyondJoinPrice
+                }).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.$message({
+                            message: '修改加价配置成功!',
+                            type: 'success'
+                        });
+                    } else {
+                        this.$message.error('修改加价配置失败！');
+                    }
+                }).catch(err => {
+                    this.$message.error('修改加价配置失败！');
+                });
+            },
+            /**获取笼子最大的值*/
+            getMaxCageWeight(petCage) {
+                if (petCage != null && petCage.length > 0) {
+                    return petCage[petCage.length - 1].maxWeight;
+                }
+                return 0;
+            },
+            /**打开窗口事件*/
+            openDialogAction(addCageDate, petCage) {
+                if (addCageDate != null) {
+                    // 获取上次输入的最大值
+                    addCageDate.minWeight = this.getMaxCageWeight(petCage);
+                    // 显示显示窗口
+                    addCageDate.show = true;
+                }
+            },
+            /**弹窗取消按钮事件*/
+            dialogCancelAction(addPetData) {
+                addPetData.show = false;
+            },
+            /**弹窗确定按钮事件*/
+            dialogEnterAction(addPetData, petCate) {
+                // 将dialog关闭
+                addPetData.show = false;
+                // 设置运输类型
+                addPetData.transportType = this.selectedType;
+                // 将数据存入数组
+                petCate.push(addPetData);
+                // 初始化所有数据
+                this.initAllDialogData();
+            },
+            /**删除最后一行数据*/
+            deleteLastLine(petCate) {
+                if (petCate !== null && petCate.length > 0) {
+                    petCate.splice(petCate.length - 1, 1);
+                }
+            },
+            /**初始化弹窗数据*/
+            initAllDialogData() {
+                this.dialog = {
+                    cageName: '',
+                    minWeight: 0,
+                    maxWeight: 0,
+                    cageWeight: 0,
+                    cagePrice: 0,
+                    show: false
+                };
+            },
+            /**是否是空数组*/
+            isEmptyArray(array) {
+                return (!array || array.length <= 0);
+            },
+        },
+        created() {
+            this.getTrainCageConfig();
+            this.getBeyondPrice();
+        }
+    });
+</script>
+</html>

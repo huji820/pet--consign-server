@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.AreaMapper">
+    <resultMap id="provinceMap" type="com.jxywkj.application.pet.model.vo.area.AreaProvinceVO">
+        <id property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="orderId" column="orderid"/>
+        <result property="weight" column="weight"/>
+    </resultMap>
+
+    <resultMap id="cityMap" type="com.jxywkj.application.pet.model.vo.area.AreaCityVO">
+        <id property="id" column="id"/>
+        <result property="weight" column="Weight"/>
+        <result property="name" column="name"/>
+        <result property="provinceId" column="provinceId"/>
+        <result property="issync" column="issync"/>
+    </resultMap>
+
+    <resultMap id="districtMap" type="com.jxywkj.application.pet.model.vo.area.AreaDistrictVO">
+        <id property="id" column="id"/>
+        <id property="weight" column="Wieght"/>
+        <result property="cityId" column="cityId"/>
+        <result property="name" column="name"/>
+        <result property="postCode" column="postCode"/>
+        <result property="issync" column="issync"/>
+    </resultMap>
+
+    <select id="listProvince" resultMap="provinceMap">
+        select * from doc_province;
+    </select>
+
+    <select id="listCity" resultMap="cityMap" parameterType="java.lang.Integer">
+        select * from doc_city where provinceId = #{provinceId};
+    </select>
+
+    <select id="getProvinceId" parameterType="string" resultType="java.lang.Integer">
+        select id from doc_province where `name` = #{provinceName};
+    </select>
+
+    <select id="listDistrict" parameterType="java.lang.Integer" resultMap="districtMap">
+        select * from doc_district where cityId = #{cityId};
+    </select>
+
+    <select id="getCityId" parameterType="string" resultType="java.lang.Integer">
+        select id from doc_city where `name` = #{cityName};
+    </select>
+
+    <select id="listAllCity" resultType="java.lang.String">
+        select name
+        from doc_city
+  </select>
+
+    <select id="listAllCityByName" resultType="java.lang.String">
+        select name
+        from doc_city
+        where name like concat('%', #{name}, '%');
+    </select>
+
+</mapper>

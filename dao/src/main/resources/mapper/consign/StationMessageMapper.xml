@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationMessageMapper">
+    <insert id="addAStationMessage" parameterType="com.jxywkj.application.pet.model.consign.StationMessage">
+        INSERT INTO t_consign_message (message_no , send_no , receive_no , message_title , message_content , status , send_time , update_time , link)
+        VALUES (#{stationMessage.messageNo},#{stationMessage.sendNo},
+        #{stationMessage.receiveNo},#{stationMessage.messageTitle},
+        #{stationMessage.messageContent},#{stationMessage.status},
+        #{stationMessage.sendTime},#{stationMessage.updateTime},
+        #{stationMessage.link});
+    </insert>
+
+    <select id="countAdminMsgByStationNo" resultType="java.lang.Integer">
+        SELECT SUM(total) FROM (
+            SELECT
+             COUNT(1) AS total
+            FROM
+              t_consign_message
+            WHERE
+               receive_no = #{stationNo}
+            AND status = #{status}
+            AND update_time &gt;= #{lastGetTime}
+            UNION ALL
+            SELECT
+             COUNT(1) AS total
+            FROM
+             t_common_message
+            WHERE
+              receive_no = (SELECT phone FROM t_consign_station WHERE station_no = #{stationNo} LIMIT 1)
+            AND update_time &gt;= #{lastGetTime}
+            AND status = #{status}
+        ) a;
+    </select>
+
+    <select id="listAdminMsgByStationNo" resultType="com.jxywkj.application.pet.model.consign.StationMessage">
+        SELECT * FROM (
+            SELECT * FROM t_consign_message WHERE receive_no = #{stationNo}
+            UNION ALL
+            SELECT * FROM t_common_message
+            WHERE receive_no = (SELECT phone FROM t_consign_station WHERE station_no = #{stationNo} LIMIT 1)
+        ) a ORDER BY a.update_time DESC LIMIT #{offset} , #{limit};
+    </select>
+</mapper>

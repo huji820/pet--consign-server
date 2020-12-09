@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderPremiumMapper">
+    <resultMap id="OrderSpread" type="com.jxywkj.application.pet.model.consign.OrderPremium">
+        <id property="billNo" column="bill_no"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="orderTime" column="order_time"/>
+        <result property="reason" column="reason"/>
+        <result property="state" column="state"/>
+        <result property="amount" column="amount"/>
+        <result property="appendImages" column="append_images"/>
+
+        <association property="staff" javaType="com.jxywkj.application.pet.model.consign.Staff">
+            <id column="staff_no" property="staffNo"/>
+            <result column="staff_name" property="staffName"/>
+            <result column="station_no" property="station.stationNo"/>
+        </association>
+
+    </resultMap>
+
+
+    <select id="listByOrderNo" resultType="com.jxywkj.application.pet.model.consign.OrderPremium">
+        SELECT *
+        FROM t_consign_order_spread
+        WHERE order_no = #{orderNo};
+    </select>
+
+    <select id="getPriceDifferenceTotal" resultType="java.math.BigDecimal">
+        SELECT IFNULL(SUM(amount), 0)
+        FROM t_consign_order_spread
+        WHERE order_no = #{orderNo}
+          AND state = #{orderType};
+    </select>
+
+    <insert id="saveOrderSpread">
+        INSERT INTO t_consign_order_spread (bill_no, order_no, order_date, order_time, reason, staff_no, state, amount)
+        values (#{billNo}, #{orderNo}, #{orderDate}, #{orderTime}, #{reason}, #{staff.staffNo}, #{state}, #{amount});
+    </insert>
+
+    <select id="getByOrderNoAndOrderStatus" resultType="com.jxywkj.application.pet.model.consign.OrderPremium">
+        SELECT *
+        FROM t_consign_order_spread
+        WHERE bill_no = #{billNo}
+          AND state = #{billState};
+    </select>
+
+    <select id="getByBillNo" resultMap="OrderSpread">
+        SELECT a.bill_no,
+               a.order_date,
+               a.order_time,
+               a.reason,
+               a.append_images,
+               a.state,
+               a.amount,
+               a.order_no,
+               b.staff_no,
+               b.staff_name,
+               b.station_no
+        FROM t_consign_order_spread a
+                 LEFT JOIN t_consign_staff b ON a.staff_no = b.staff_no
+        WHERE bill_no = #{billNo};
+    </select>
+
+    <update id="updateOrderState">
+        UPDATE t_consign_order_spread
+        SET state = #{orderState}
+        WHERE bill_no = #{billNo};
+    </update>
+
+    <select id="countByOrderNoAndType" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM t_consign_order_spread
+        WHERE order_no = #{orderNo}
+          AND state = #{billType};
+    </select>
+
+</mapper>

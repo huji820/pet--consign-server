@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.CouponMapper">
+    <update id="verificationCoupon">
+        UPDATE t_business_coupon
+        SET coupon_state = #{coupon.couponState},
+        use_time = #{coupon.useTime},
+        business_no = #{coupon.businessNo}
+         WHERE coupon_no = #{coupon.couponNo};
+    </update>
+
+    <select id="listByCouponNo" resultType="com.jxywkj.application.pet.model.consign.Coupon">
+        SELECT * FROM t_business_coupon WHERE coupon_no like CONCAT("%",#{couponNo},"%");
+    </select>
+</mapper>

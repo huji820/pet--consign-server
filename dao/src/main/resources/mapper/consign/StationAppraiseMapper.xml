@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationAppraiseMapper">
+    <resultMap id="appraiseResult" type="com.jxywkj.application.pet.model.consign.StationAppraise">
+        <id property="appraiseNo" column="appraise_no"/>
+        <result property="praiseDegree" column="praise_degree"/>
+        <result property="content" column="content"/>
+        <result property="appraiseDate" column="appraise_date"/>
+        <collection property="station" ofType="com.jxywkj.application.pet.model.consign.Station">
+            <id property="stationNo" column="station_no"/>
+            <result property="stationName" column="station_name"/>
+        </collection>
+        <collection property="business" ofType="com.jxywkj.application.pet.model.business.Business">
+            <id property="businessNo" column="business_no"/>
+            <result property="businessName" column="business_name"/>
+        </collection>
+    </resultMap>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="appraiseNo" parameterType="com.jxywkj.application.pet.model.consign.StationAppraise">
+        INSERT INTO t_consign_station_appraise (
+          `station_no`, `business_no`, `praise_degree`,
+          `content`, `appraise_date`
+        ) values (
+          #{station.stationNo},
+          #{business.businessNo},
+          #{praiseDegree},
+          #{content},
+          #{appraiseDate}
+        )
+
+    </insert>
+</mapper>

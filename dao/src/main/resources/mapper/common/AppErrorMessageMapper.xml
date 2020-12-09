@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.AppErrorMessageMapper">
+    <insert id="save" parameterType="com.jxywkj.application.pet.model.common.AppErrorMessage">
+        INSERT INTO t_common_app_error_message (phone_model , phone , date_time , operation , log_message , app_type)
+         VALUES
+         (#{appErrorMessage.phoneModel} ,
+         #{appErrorMessage.phone} ,
+         #{appErrorMessage.dateTime} ,
+         #{appErrorMessage.operation},
+         #{appErrorMessage.logMessage},
+         #{appErrorMessage.appType});
+    </insert>
+</mapper>

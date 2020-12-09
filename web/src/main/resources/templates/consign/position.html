@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>位置配置</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://webapi.amap.com/maps?v=1.4.6&key=d1d31c861469e1023b9c1308679f9155&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.Geocoder"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        .center-style {
+            width: 60%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container style="margin-top: 10px" class="center-style">
+        <el-header>
+            <h1>机场、火车站、汽车站配置</h1>
+        </el-header>
+        <el-container v-loading="loading">
+            <el-header>
+                <div>
+                    <el-radio v-model="radio" label="3" border @change="get">机场位置</el-radio>
+                    <el-radio v-model="radio" label="2" border @change="get">火车站位置</el-radio>
+                    <el-radio v-model="radio" label="5" border @change="get">汽车站位置</el-radio>
+                </div>
+            </el-header>
+            <el-main>
+                <el-col :span="12">
+                    <h3>快速搜索</h3>
+                    <el-input v-model="search" id="tipinput"></el-input>
+                    <el-form ref="form" :model="form" label-position="left">
+                        <el-form-item label="省">
+                            <el-input v-model="form.province" :disabled="true"></el-input>
+                        </el-form-item>
+                        <el-form-item label="市">
+                            <el-input v-model="form.city" :disabled="true"></el-input>
+                        </el-form-item>
+                        <el-form-item label="区/县">
+                            <el-input v-model="form.region" :disabled="true"></el-input>
+                        </el-form-item>
+                        <el-form-item label="详细地址">
+                            <el-input v-model="form.detailAddress" :disabled="true"></el-input>
+                        </el-form-item>
+                        <el-form-item label="经度">
+                            <el-input v-model="form.longitude" :disabled="true"></el-input>
+                        </el-form-item>
+                        <el-form-item label="纬度">
+                            <el-input v-model="form.latitude" :disabled="true"></el-input>
+                        </el-form-item>
+                        <!--<el-button type="info" @click="queryLnglatAction">定位</el-button>-->
+                        <el-button type="primary" @click="saveOrUpdate">保存</el-button>
+                    </el-form>
+                </el-col>
+                <el-col :span="12">
+                    <div id="gaodeMap" style="height: 600px"></div>
+                </el-col>
+            </el-main>
+        </el-container>
+    </el-container>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    // 定义一个地图对象
+    var gaodeMap;
+    // 定义一个高德地理编码对象
+    var geocoder;
+    // 定义一个高德标记对象
+    var marker;
+    // 输入提示
+    var auto;
+    // 搜索
+    var placeSearch;
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                radio: '2',
+                search: '',
+                form: {
+                    positionNo: '',
+                    station: {stationNo: ''},
+                    province: '',
+                    city: '',
+                    region: '',
+                    detailAddress: '',
+                    longitude: 0.0,
+                    latitude: 0.0,
+                    type: 0
+                },
+                loading: false
+            }
+        },
+        methods: {
+            /**获取数据事件*/
+            get() {
+                this.loading = true;
+                // 清空输入的数据
+                this.search = '';
+                axios.get('/consign/position', {params: {'type': this.radio}}).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        if (res.data.data) {
+                            this.form.positionNo = res.data.data.positionNo;
+                            this.form.station = res.data.data.station;
+                            this.form.province = res.data.data.province;
+                            this.form.city = res.data.data.city;
+                            this.form.region = res.data.data.region;
+                            this.form.detailAddress = res.data.data.detailAddress;
+                            this.form.longitude = res.data.data.longitude;
+                            this.form.latitude = res.data.data.latitude;
+                            this.form.type = res.data.data.type;
+                            //  定位到指定位置
+                            this.mapLocationAction({
+                                'P': this.form.latitude,
+                                'O': this.form.longitude,
+                                'lng': this.form.longitude,
+                                'lat': this.form.latitude
+                            });
+                        } else {
+                            this.newEmptyForm();
+                        }
+                    } else {
+                        this.newEmptyForm();
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.loading = false;
+                    this.$message.error('获取配置失败！' + err);
+                });
+            },
+            /**新增或者保存数据*/
+            saveOrUpdate() {
+                this.form.type = this.radio;
+                if (!this.checkParam()) {
+                    this.$message.error('数据不完整！请重新填写数据。');
+                    return;
+                }
+                this.loading = true;
+                this.form.station = null;
+                this.form.type = this.radio;
+                axios.post('/consign/position', this.form).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.$message({
+                            message: '修改成功！',
+                            type: 'success'
+                        });
+                    } else {
+                        this.$message.error('修改失败！');
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.$message.error('修改失败！');
+                    this.loading = false;
+                });
+            },
+            /**校验参数*/
+            checkParam() {
+                return this.form.province
+                    && this.form.city
+                    && this.form.region
+                    && this.form.detailAddress
+                    && this.form.longitude
+                    && this.form.latitude
+                    && this.form.type;
+            },
+            /**创建一个新的空对象*/
+            newEmptyForm() {
+                this.form.positionNo = '';
+                this.form.station = '';
+                this.form.province = '';
+                this.form.city = '';
+                this.form.region = '';
+                this.form.detailAddress = '';
+                this.form.longitude = '';
+                this.form.latitude = '';
+                this.form.type = '';
+            },
+            /**初始化地图*/
+            initMap() {
+                // 创建一个地图对象
+                gaodeMap = new AMap.Map("gaodeMap", {
+                    // 默认缩放级别
+                    zoom: 6,
+                });
+                // 创建一个高德地理编码对象
+                geocoder = new AMap.Geocoder();
+
+                // 创建一个地图标记对象
+                marker = new AMap.Marker();
+
+                // 提示
+                auto = new AMap.Autocomplete({
+                    input: "tipinput"
+                });
+
+                // 注册搜索
+                AMap.service(["AMap.PlaceSearch"], () => {
+                    // 搜索对象
+                    placeSearch = new AMap.PlaceSearch({
+                        pageSize: 1, // 单页显示结果条数
+                        map: gaodeMap, // 展现结果的地图实例
+                    });
+                });
+
+            },
+            /**初始化地图方法绑定*/
+            initMapAction() {
+                // 单击事件
+                gaodeMap.on('click', this.mapClick);
+                // 输入提示选择事件
+                AMap.event.addListener(auto, "select", (e) => {
+                    this.autoSelectAction(e)
+                })
+            },
+            /**地图单击事件*/
+            mapClick(e) {
+                // 标记地图位置
+                this.mapLocationAction(e.lnglat);
+                // 逆地理编码获取具体的信息
+                this.queryAddressAction(e.lnglat);
+                // 设置经纬度信息
+                this.setLnglat(e.lnglat);
+            },
+            /**地图定位事件*/
+            mapLocationAction(e) {
+                // 设置标记位置
+                marker.setPosition(e);
+                // 在地图上添加标记
+                gaodeMap.add(marker);
+            },
+            /**地理编码事件*/
+            queryLnglatAction() {
+                if (!this.checkAddressCompleted()) {
+                    this.$message.error('请填写完整的地址！');
+                    return;
+                }
+                let fatherObj = this;
+                let address = this.form.province + this.form.city + this.form.region + this.form.detailAddress;
+                geocoder.getLocation(address, function (status, result) {
+                    if (status === 'complete' && result.geocodes.length) {
+                        let location = result.geocodes[0].location;
+                        // 定位事件
+                        fatherObj.mapLocationAction(location);
+                        // 设置经纬度
+                        fatherObj.setLnglat(location);
+                        // 缩放到合适的显示
+                        gaodeMap.setFitView(marker);
+                    } else {
+                        fatherObj.form.longitude = '';
+                        fatherObj.form.latitude = '';
+                        fatherObj.$message.error('根据地址查询位置失败');
+                    }
+                });
+            },
+            /**校验地址是否填写完整*/
+            checkAddressCompleted() {
+                return this.form.province && this.form.city && this.form.region && this.form.detailAddress;
+            },
+            /**逆地理编码事件事件*/
+            queryAddressAction(e) {
+                let fatherObj = this;
+                geocoder.getAddress(e, function (status, result) {
+                    if (status === 'complete' && result.regeocode) {
+                        fatherObj.setAddress(result.regeocode.addressComponent);
+                    } else {
+                        this.$message.error('根据经纬度查询地址失败')
+                    }
+                });
+            },
+            /**设置位置信息*/
+            setAddress(address) {
+                this.form.province = address.province;
+                this.form.city = address.city;
+                this.form.region = address.district;
+                this.form.detailAddress = address.street + address.streetNumber;
+            },
+            /**设置表单数据*/
+            setFormData(address, lnglat) {
+                this.setAddress(address);
+                this.setLnglat(lnglat);
+            },
+            /**设置经纬度*/
+            setLnglat(lnglat) {
+                this.form.longitude = lnglat.getLng();
+                this.form.latitude = lnglat.getLat();
+            },
+            /**自动填充事件*/
+            autoSelectAction(e) {
+                // 位置校验
+                if (!e || !e.poi || !e.poi.location) {
+                    this.$message.error('该地点无效！');
+                    return;
+                }
+                // 逆地理编码
+                this.queryAddressAction(e.poi.location);
+                // 设置经纬度
+                this.setLnglat(e.poi.location);
+                // 在地图上标记位置
+                this.mapLocationAction(e.poi.location);
+                // 缩放到合适的显示
+                gaodeMap.setFitView(marker);
+            },
+            /**缩放到合适的显示*/
+            fitView() {
+                // 缩放到合适的范围
+                gaodeMap.setFitView(marker);
+            }
+        },
+        mounted() {
+            this.initMap();
+            this.initMapAction();
+            this.get();
+        },
+        created() {
+        }
+    });
+</script>
+</html>

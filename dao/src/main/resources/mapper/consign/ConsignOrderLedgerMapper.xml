@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignOrderLedgerMapper">
+    <resultMap id="orderLedger" type="com.jxywkj.application.pet.model.consign.OrderLedger">
+        <id property="orderNo" column="order_no" />
+        <result property="station.stationNo" column="station_no" />
+        <result property="leaveDate" column="leave_date" />
+        <result property="orderDate" column="order_date" />
+        <result property="orderTime" column="order_time" />
+        <result property="startCity" column="start_city"/>
+        <result property="endCity" column="end_city" />
+        <result property="transportTypeName" column="transport_type_name"/>
+        <result property="petSort.petSortName" column="pet_type_name" />
+        <result property="petGenre.petGenreName" column="pet_classify_name" />
+        <result property="weight" column="weight" />
+        <result property="num" column="num" />
+        <result property="senderName" column="sender_name" />
+        <result property="senderPhone" column="sender_phone" />
+        <result property="receiverName" column="receiver_name" />
+        <result property="receiverPhone" column="receiver_phone" />
+        <result property="paymentAmount" column="payment_amount" />
+        <result property="costAmount" column="cost_amount" />
+        <result property="profit" column="profit" />
+        <result property="synced" column="synced" />
+    </resultMap>
+
+    <insert id="insertOrderLedger">
+        <foreach collection="orderLedgers" item="item">
+          insert into t_consign_order_ledger(order_no, station_no, leave_date, order_date, order_time, start_city, end_city, transport_type_name, pet_type_name, pet_classify_name,
+          weight, num, sender_name, sender_phone, receiver_name, receiver_phone,
+          payment_amount, cost_amount, profit, synced, paid , date_create)
+          values (#{item.orderNo}, #{item.station.stationNo}, #{item.leaveDate}, #{item.orderDate}, #{item.orderTime}, #{item.startCity}, #{item.endCity}, #{item.transportTypeName}, #{item.petSort.petSortName}, #{item.petGenre.petGenreName},
+          #{item.weight}, #{item.num}, #{item.senderName}, #{item.senderPhone}, #{item.receiverName}, #{item.receiverPhone},
+          #{item.paymentAmount}, #{item.costAmount}, #{item.profit}, 0, #{item.paid} , #{item.dateCreate});
+        </foreach>
+
+    </insert>
+
+    <update id="updateOrderLedger">
+        update t_consign_order_ledger
+
+        set cost_Amount = #{orderLedger.costAmount}, profit = payment_Amount - #{orderLedger.costAmount},
+
+        synced = #{orderLedger.synced}
+
+        where station_no = #{orderLedger.station.stationNo} and order_no = #{orderLedger.orderNo};
+
+    </update>
+    <update id="updateOrderLedgerSync">
+        update t_consign_order_ledger set synced = 1
+        where station_no = #{stationNo} and order_no = #{orderNo};
+    </update>
+
+    <delete id="deleteOrderLedger">
+
+        delete from t_consign_order_ledger
+        where station_no = #{stationNo} and order_no = #{orderNo};
+
+    </delete>
+
+    <select id="listOrderLedger" resultMap="orderLedger">
+        select * from t_consign_order_ledger where station_no = #{stationNo}
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and order_date like concat('%', #{startDate}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and order_date like concat('%', #{endDate}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endCity)">
+            and end_city like concat('%', #{endCity}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(petTypeName)">
+            and pet_type_name like concat('%', #{petTypeName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(senderName)">
+            and sender_name like concat('%', #{senderName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(senderPhone)">
+            and sender_phone like concat('%', #{senderPhone}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(receiverName)">
+            and receiver_name like concat('%', #{receiverName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(receiverPhone)">
+            and receiver_phone like concat('%', #{receiverPhone}, '%')
+        </if>
+        <if test="sync">
+            and synced = 1
+        </if>
+
+        limit #{start}, #{limit}
+
+    </select>
+    <select id="countOrderLedger" resultType="java.lang.Integer">
+        select count(1) from t_consign_order_ledger where station_no = #{stationNo}
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and order_date like concat('%', #{startDate}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and order_date like concat('%', #{endDate}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endCity)">
+            and end_city like concat('%', #{endCity}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(petTypeName)">
+            and pet_type_name like concat('%', #{petTypeName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(senderName)">
+            and sender_name like concat('%', #{senderName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(senderPhone)">
+            and sender_phone like concat('%', #{senderPhone}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(receiverName)">
+            and receiver_name like concat('%', #{receiverName}, '%')
+        </if>
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(receiverPhone)">
+          and receiver_phone like concat('%', #{receiverPhone}, '%')
+        </if>
+        <if test="sync">
+          and synced = 1
+        </if>
+    </select>
+
+    <select id="getByOrderNo" resultMap="orderLedger">
+        select * from t_consign_order_ledger where order_no = #{orderNo} limit 1;
+    </select>
+</mapper>

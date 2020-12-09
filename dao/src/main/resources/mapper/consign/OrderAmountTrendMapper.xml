@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderAmountTrendMapper">
+    <resultMap id="baseOrderTrend" type="com.jxywkj.application.pet.model.consign.OrderAmountTrend">
+        <id column="order_no" property="orderNo"/>
+        <result column="transport_name" property="transport.transportName"/>
+        <result column="transport_no" property="transport.transportNo"/>
+        <result column="pet_type_name" property="petSort.petSortName"/>
+        <result column="pet_classify_name" property="petGenre.petGenreName"/>
+        <result column="cage_name" property="addedWeightCage.cageName"/>
+        <result column="cage_price" property="addedWeightCage.cagePrice"/>
+        <result column="insure_amount" property="addedInsure.insureAmount"/>
+        <result column="insure_rate" property="addedInsure.rate"/>
+    </resultMap>
+
+
+    <select id="listByParam" resultMap="baseOrderTrend">
+        SELECT a.*,b.premium_total,d.transport_name
+        FROM t_consign_order a
+        LEFT JOIN (SELECT SUM(amount) AS premium_total, order_no
+        FROM t_consign_order_spread temp_a
+        JOIN t_consign_staff temp_b ON temp_a.staff_no
+        = temp_b.staff_no AND
+        temp_b.station_no = #{orderAmountTrendDTO.stationNo} WHERE temp_a.state = '已支付'
+        GROUP BY temp_a.order_no) b ON
+        a.order_no = b.order_no
+        JOIN (
+        SELECT temp_c.order_no
+        FROM t_consign_order temp_c
+        JOIN (SELECT order_no
+        FROM t_consign_order_state
+        WHERE sn = 0
+        AND order_type = '待付款'
+        AND station_no = #{orderAmountTrendDTO.stationNo}) temp_d
+        ON temp_c.order_no = temp_d.order_no
+        <where>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.orderNo)">
+                AND temp_c.order_no = #{orderAmountTrendDTO.orderNo}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.orderState)">
+                AND temp_c.state = #{orderAmountTrendDTO.orderState}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.senderPhone)">
+                AND temp_c.sender_phone = #{orderAmountTrendDTO.senderPhone}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.receiverPhone)">
+                AND temp_c.receiver_phone = #{orderAmountTrendDTO.receiverPhone}
+            </if>
+        </where>
+        LIMIT #{orderAmountTrendDTO.offset} ,#{orderAmountTrendDTO.limit}
+        ) c ON a.order_no = c.order_no
+        LEFT JOIN t_consign_transport d ON a.transport_no = d.transport_no
+    </select>
+
+    <select id="getTotalByParam" resultType="int">
+        SELECT COUNT(1)
+        FROM t_consign_order a
+        JOIN (SELECT temp_a.order_no
+        FROM t_consign_order temp_a
+        JOIN t_consign_order_state temp_b
+        ON temp_a.order_no = temp_b.order_no AND sn = 0 AND order_type = '待付款' AND
+        temp_b.station_no = #{orderAmountTrendDTO.stationNo}) b ON a.order_no = b.order_no
+        <where>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.orderNo)">
+                AND a.order_no = #{orderAmountTrendDTO.orderNo}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.orderState)">
+                AND a.state = #{orderAmountTrendDTO.orderState}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.senderPhone)">
+                AND a.sender_phone = #{orderAmountTrendDTO.senderPhone}
+            </if>
+            <if test="@com.jxywkj.application.pet.common.utils.StringUtils@isNotBlank(orderAmountTrendDTO.receiverPhone)">
+                AND a.receiver_phone = #{orderAmountTrendDTO.receiverPhone}
+            </if>
+        </where>
+    </select>
+</mapper>

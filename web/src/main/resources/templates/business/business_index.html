@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title> 宠物之家 管理系统</title>
+    <!--    导入vue-->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="../../static/js/axios.min.js"></script>
+    <!-- 引入样式element -->
+    <link rel="stylesheet" href="/static/css/index.css">
+
+    <!-- 全局js -->
+    <script src="../../static/js/jQuery-2.2.0.min.js"></script>
+    <script src="../../static/js/bootstrap.min.js"></script>
+
+    <!-- import Vue before Element -->
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <!-- import JavaScript -->
+    <script src="/static/js/index.js"></script>
+    <style>
+        html, body {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        .authentication-card {
+            margin: 0px;
+            padding: 0px;
+        }
+
+        itemout {
+            margin-top: 50px;
+            margin-left: 30px;
+        }
+
+        item {
+            margin-left: 50px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <template>
+        <div style="background-color: #EBEBEB;width: 100%;">
+            <div style="width:100%;background-color: #2F4050; overflow: hidden">
+
+                <el-menu
+                        :default-active="menuIndex"
+                        class="el-menu-demo"
+                        mode="horizontal"
+                        @select="handleSelect"
+                        background-color="#545c64"
+                        text-color="#fff"
+                        active-text-color="#ffd04b">
+                    <el-menu-item index="1">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">首页</span>
+                    </el-menu-item>
+
+                    <el-submenu index="2">
+                        <template slot="title">
+                            <i class="el-icon-coin"></i>
+                            <span>优惠券管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="2-1">优惠券核销</el-menu-item>
+                            <el-menu-item index="2-2">优惠券列表</el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+
+
+                    <el-submenu index="3">
+                        <template slot="title">
+                            <i class="el-icon-coin"></i>
+                            <span>个人中心</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="3-1">认证中心</el-menu-item>
+                            <el-menu-item index="3-2">基本资料维护</el-menu-item>
+                            <el-menu-item index="3-3">专属二维码</el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+
+                    <el-menu-item index="4">
+                        <i class="el-icon-menu"></i>
+                        <span slot="title">客户管理</span>
+                    </el-menu-item>
+                    <el-submenu index="5">
+                        <template slot="title">
+                            <i class="el-icon-coin"></i>
+                            <span>资料管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="5-1">商品档案</el-menu-item>
+                            <el-menu-item index="5-2">资料字典</el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+                    <el-submenu index="6">
+                        <template slot="title">
+                            <i class="el-icon-setting"></i>
+                            <span>账号管理</span>
+                        </template>
+                        <el-menu-item-group>
+                            <el-menu-item index="6-1">全局设置</el-menu-item>
+                            <el-menu-item index="6-2">修改密码</el-menu-item>
+                            <el-menu-item index="6-3">退出</el-menu-item>
+                        </el-menu-item-group>
+                    </el-submenu>
+
+                </el-menu>
+
+            </div>
+
+
+            <div style="margin-top:5px">
+                <el-row :gutter="0">
+                    <!--                    <el-col :span="4">-->
+                    <!--                        <div>-->
+
+                    <!--                        </div>-->
+                    <!--                    </el-col>-->
+                    <el-col :span="24">
+                        <div>
+                            <div id="completeDiv">
+                                <!--src为页面名称-->
+                                <iframe scrolling="auto" frameborder="0" :src="iframeIndex"
+                                        style="margin-top:0px;height:890px;width: 100%;"></iframe>
+                            </div>
+                        </div>
+                    </el-col>
+                </el-row>
+            </div>
+        </div>
+    </template>
+</div>
+
+</body>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                newTsSl: 'new',
+                //未处理的投诉数量
+                tsSl: 0,
+                iframeIndex: "/business/couponPage",
+                menuIndex: "1",
+                routerType: true,
+                shjbh: '',
+                salesDate: [],
+                Hjdialog: true,
+                shopDate: [],
+                business: {}
+            }
+        },
+        methods: {
+            handleIconClick(ev) {
+                console.log(ev);
+            },
+            /*  修改下侧的页面*/
+            handleSelect(key, keyPath) {
+                switch (key) {
+                    case '1':
+                        this.iframeIndex = "home";
+                        break;
+                    case '2-1':
+                        this.iframeIndex = "/business/couponPage";
+                        break;
+                    case '3-2':
+                        this.iframeIndex = "/business/detailsPage";
+                        break;
+                    case '3-3':
+                        this.downloadRrImg();
+                        break;
+                    case '4':
+                        this.iframeIndex = "customer";
+                        break;
+                    case '5-1':
+                        this.iframeIndex = "item";
+                        break;
+                    case '5-2':
+                        this.iframeIndex = "dictionary";
+                        break;
+                    case '6-1':
+                        this.iframeIndex = "globalSetting";
+                        break;
+                    case '6-2':
+                        this.iframeIndex = "callData";
+                        break;
+                    case '6-3':
+                        location.href = "/business/loginPage";
+                        break;
+                }
+            },
+            //获取未处理的投诉数量
+            getTsSl() {
+                axios.get("/complaint/listUnDisposeComplaint", {
+                    params: {}
+                }).then((res) => {
+                    if (res.status !== 200) {
+                        this.$message({
+                            type: 'error',
+                            message: '查询失败!'
+                        });
+                    } else {
+                        if (res.dictionary.prompt === 'Error') {
+                            this.$message({
+                                type: 'error',
+                                message: res.dictionary.root
+                            });
+                        } else {
+
+                            if (res.dictionary.root.length > 0) {
+                                this.newTsSl = 'new';
+                                this.tsSl = res.dictionary.root.length;
+                            } else {
+                                this.newTsSl = '';
+                                this.tsSl = '';
+                            }
+                        }
+                    }
+                }).catch((err) => {
+                    this.$message({
+                        type: 'error',
+                        message: '查询失败!'
+                    });
+                })
+            },
+
+            // 获取用户资料
+            getShjData() {
+                axios.get("/authentication/listYhdaApprove", {
+                    params: {
+                        keyWord: this.keyWord
+                    }
+                }).then((res) => {
+                    if (res.status !== 200) {
+                        this.$message({
+                            type: 'error',
+                            message: '查询失败!'
+                        });
+                    } else {
+                        if (res.dictionary.prompt === 'Error') {
+                            this.$message({
+                                type: 'error',
+                                message: res.dictionary.root
+                            });
+                        } else {
+                            this.ShjData = res.dictionary.root;
+                            this.shjbh = this.ShjData.shjbh;
+                            this.initSocket();
+                        }
+                    }
+                }).catch((err) => {
+                    this.$message({
+                        type: 'error',
+                        message: '查询失败!'
+                    });
+                })
+            },
+            getBusiness() {
+                axios.get("/business/getSession").then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.business = res.data.data;
+                    }
+                }).catch(err => {
+                    this.$message.error("获取用户信息失败！");
+                });
+            },
+            downloadRrImg() {
+                axios.get("/api/business/qr?businessNo=" + this.business.businessNo).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        location.href = res.data.data;
+                    } else {
+                        this.$message.error("获取二维码失败！");
+                    }
+                }).catch(err => {
+                    this.$message.error("获取二维码失败！");
+                });
+
+            }
+        },
+        created() {
+            this.getBusiness();
+        }
+    })
+</script>
+</html>

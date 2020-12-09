@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.AddedWeightCageMapper">
+    <insert id="saveList">
+        INSERT INTO t_consign_weight_cage (station_no , cage_name , min_weight , max_weight , cage_weight , cage_price ,
+        transport_type , use_weight , use_volume) VALUES
+        <foreach collection="addedWeightCages" item="cage" separator="," close=";">
+            (#{cage.station.stationNo} , #{cage.cageName} , #{cage.minWeight} , #{cage.maxWeight} , #{cage.cageWeight} ,
+            #{cage.cagePrice} , #{cage.transportType} , #{cage.useWeight} , #{cage.useVolume})
+        </foreach>
+    </insert>
+
+    <select id="listByStationNoAndType" resultType="com.jxywkj.application.pet.model.consign.AddedWeightCage">
+        SELECT * FROM t_consign_weight_cage WHERE station_no = #{stationNo} AND transport_type = #{transportType};
+    </select>
+
+    <delete id="deleteByStationNoAndType">
+        DELETE FROM t_consign_weight_cage WHERE station_no = #{stationNo} AND transport_type = #{transportType};
+    </delete>
+
+    <select id="getMaxWeightByStationNoAndType" resultType="java.math.BigDecimal">
+        SELECT
+            max(max_weight)
+        FROM
+            t_consign_weight_cage
+        WHERE
+            #{usable} = (
+                CASE
+                WHEN (
+                    EXISTS (
+                        SELECT
+                            1
+                        FROM
+                            t_consign_volume_cage
+                        WHERE
+                            transport_no = #{transportNo}
+                    )
+                ) THEN
+                    use_volume
+                ELSE
+                    use_weight
+                END
+            )
+        AND station_no = (
+            SELECT
+                station_no
+            FROM
+                t_consign_transport
+            WHERE
+                transport_no = #{transportNo}
+            LIMIT 1
+        )
+        AND transport_type = #{transportType};
+    </select>
+
+</mapper>

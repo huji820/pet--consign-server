@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.BlackListMapper">
+    <insert id="save">
+        INSERT INTO t_common_black_list(phone, date_time)
+        VALUES
+        <foreach collection="blackLists" item="blackList" separator="," close=";">
+            (#{blackList.phone}, #{blackList.dateTime})
+        </foreach>
+
+    </insert>
+
+    <select id="listAll" resultType="com.jxywkj.application.pet.model.common.BlackList">
+        SELECT *
+        FROM t_common_black_list
+        LIMIT #{offset} , #{limit};
+    </select>
+
+    <delete id="deleteByPhone">
+        DELETE
+        FROM t_common_black_list
+        WHERE phone = #{phone};
+    </delete>
+
+    <select id="getByPhone" resultType="com.jxywkj.application.pet.model.common.BlackList">
+        SELECT *
+        FROM t_common_black_list
+        WHERE PHONE = #{phone}
+        LIMIT 1;
+    </select>
+</mapper>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.TempFilesMapper">
+    <resultMap id="TempFilesMap" type="com.jxywkj.application.pet.model.consign.file.OrderStateTempFiles">
+        <id property="orderNo" column="order_no"/>
+        <result property="uploadDate" column="upload_date"/>
+        <result property="uploadTime" column="upload_time"/>
+        <result property="fileAddress" column="file_address"/>
+        <result property="fileType" column="file_type"/>
+        <result property="fileName" column="file_name"/>
+        <result property="viewAddress" column="view_address"/>
+    </resultMap>
+
+
+    <insert id="addATempFiles" parameterType="com.jxywkj.application.pet.model.consign.file.OrderStateTempFiles">
+    INSERT INTO
+    t_consign_order_temp_files (order_no,upload_date,upload_time,file_address,file_type,file_name)
+     VALUES
+      (#{orderStateTempFiles.orderNo},
+      #{orderStateTempFiles.uploadDate},
+      #{orderStateTempFiles.uploadTime},
+      #{orderStateTempFiles.fileAddress},
+      #{orderStateTempFiles.fileType},
+      #{orderStateTempFiles.fileName});
+    </insert>
+
+    <select id="listByOrderNo" resultMap="TempFilesMap"
+            parameterType="java.lang.String">
+        SELECT
+            order_no,
+            upload_date,
+            upload_time,
+            file_address,
+            file_type,
+            file_name,
+            file_address AS view_address
+        FROM
+            t_consign_order_temp_files
+        WHERE
+            order_no = #{orderNo};
+    </select>
+
+    <delete id="deleteByOrderNo" parameterType="java.lang.String">
+        DELETE FROM t_consign_order_temp_files WHERE order_no = #{orderNo};
+    </delete>
+</mapper>

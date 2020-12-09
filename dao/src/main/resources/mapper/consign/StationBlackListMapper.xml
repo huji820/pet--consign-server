@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationBlackListMapper">
+
+    <resultMap id="stationBlacklistResultMap" type="com.jxywkj.application.pet.model.consign.StationBlacklist">
+        <result property="station.stationNo" column="station_no"/>
+        <result property="blacklistStation.stationNo" column="blacklist_station_no"/>
+    </resultMap>
+
+    <resultMap id="stationBlacklistListMap" type="com.jxywkj.application.pet.model.consign.StationBlacklist">
+        <result property="station.stationNo" column="station_no"/>
+        <collection property="blacklistStationList"
+                    ofType="com.jxywkj.application.pet.model.consign.Station">
+            <id property="stationNo" column="black_station_no"/>
+            <result property="stationName" column="station_name"/>
+            <result property="province" column="province"/>
+            <result property="city" column="city"/>
+            <result property="contact" column="contact"/>
+            <result property="phone" column="phone"/>
+            <result property="address" column="address"/>
+        </collection>
+
+    </resultMap>
+
+
+    <insert id="saveOrUpdate">
+        DELETE
+        FROM t_station_blacklist
+        WHERE station_no = #{stationBlacklist.station.stationNo}
+          AND blacklist_station_no = #{stationBlacklist.blacklistStation.stationNo};
+        INSERT INTO t_station_blacklist (`station_no`, `create_time`, `blacklist_station_no`)
+        VALUES (#{stationBlacklist.station.stationNo}, #{stationBlacklist.createTime},
+                #{stationBlacklist.blacklistStation.stationNo});
+    </insert>
+
+    <delete id="deleteByBlackStationNo">
+        DELETE
+        FROM t_station_blacklist
+        WHERE station_no = #{stationNo}
+          AND blacklist_station_no = #{blackStationNo};
+    </delete>
+
+    <delete id="deleteByStationNo">
+        DELETE
+        FROM t_station_blacklist
+        WHERE station_no = #{stationNo};
+    </delete>
+
+    <select id="getByBlackStationNo" resultMap="stationBlacklistResultMap">
+        SELECT *
+        FROM t_station_blacklist
+        WHERE station_no = #{stationNo}
+          AND blacklist_station_no = #{checkStationNo}
+        LIMIT 1;
+    </select>
+
+    <select id="listByStationNo" resultMap="stationBlacklistListMap">
+        SELECT a.station_no,
+               b.station_no AS black_station_no,
+               b.station_name,
+               b.province,
+               b.city,
+               b.contact,
+               b.phone,
+               b.address
+        FROM t_station_blacklist a
+                 LEFT JOIN t_consign_station b ON a.blacklist_station_no = b.station_no
+        WHERE a.station_no = #{stationNo};
+    </select>
+
+
+</mapper>

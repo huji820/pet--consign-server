@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="/static/js/axios.min.js"></script>
+    <script src="https://webapi.amap.com/maps?v=1.4.6&key=d1d31c861469e1023b9c1308679f9155&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.Geocoder"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+
+        .fit {
+            padding: 0px;
+            margin: 0px;
+        }
+
+        #toolPanel .el-input {
+            width: 280px;
+        }
+
+        #sitePanel .el-button {
+            width: 200px;
+        }
+
+        #sitePanel .el-input {
+            width: 200px;
+        }
+
+        #sitePanel .el-input {
+            width: 200px;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+            position: relative;
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: column;
+            flex-direction: column;
+            min-width: 0;
+            word-wrap: break-word;
+            background-color: #fff;
+            background-clip: border-box;
+            border: 1px solid rgba(0, 0, 0, .125);
+            border-radius: .25rem;
+            margin-top: .5rem !important;
+        }
+
+        .el-select .el-input__inner {
+            width: 400px;
+        }
+
+        .el-input .el-input--suffix {
+            width: 400px;
+        }
+
+        .el-input__suffix {
+            right: 26px;
+            transition: all .3s;
+        }
+
+        .el-row {
+            margin: 5px 0 5px 0;
+        }
+
+        .nodeCount {
+
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <el-container>
+        <el-main style="margin: 0; padding: 0">
+            <div id="amap" :style="mapStyle"></div>
+        </el-main>
+
+        <el-dialog
+                :visible.sync="partnerDialogVisible"
+                id="consign"
+                width="250px">
+            <el-row>
+                <div style="font-size: 16px; font-family: 'Microsoft YaHei'">编&nbsp;&nbsp;&nbsp;&nbsp;号:&nbsp;&nbsp;&nbsp;{{partner.partnerNo}}</div>
+            </el-row>
+            <el-row>
+                <div style="font-size: 16px; font-family: 'Microsoft YaHei'">位&nbsp;&nbsp;&nbsp;&nbsp;置:&nbsp;&nbsp;&nbsp;{{partner.partnerName}}</div>
+            </el-row>
+            <template v-for="(item,key,index) in partner.partnerContacts ">
+                <el-row>
+                    <div style="font-size: 16px; font-family: 'Microsoft YaHei'">{{labname+(key+1)}}:&nbsp;&nbsp;{{item.contact}}</div>
+
+                </el-row>
+                <el-row>
+                    <div style="font-size: 16px; font-family: 'Microsoft YaHei'">{{labphone+(key+1)}}:&nbsp;&nbsp;{{item.phone}}</div>
+                </el-row>
+            </template>
+            <el-row>
+                <el-button size="small" type="primary" @click="openUpdatePartnerDialog">编 辑</el-button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <el-button size="small" type="danger" @click="deletePartner">删 除</el-button>
+            </el-row>
+        </el-dialog>
+
+        <el-dialog
+                :visible.sync="partnerUpdateDialogVisible"
+                id="consign"
+                width="600px">
+            <el-form ref="form" :model="partner" label-width="80px">
+                <el-form-item label="网点编号">
+                    <el-input
+                            placeholder="请输入网点编号"
+                            v-model="partner.partnerNo"
+                            :readonly="true" style="width: 400px">
+                    </el-input>
+                </el-form-item>
+                <el-form-item label="网点名称">
+                    <el-input
+                            placeholder="请输入网点名称"
+                            v-model="partner.partnerName" style="width: 400px">
+                    </el-input>
+                </el-form-item>
+                <template v-for="(item,idx) in partner.partnerContacts">
+                    <el-form-item :label="labname+(idx+1)">
+                        <el-input
+                                placeholder="请输入联系人"
+                                v-model="item.contact" style="width: 400px">
+                        </el-input>
+                    </el-form-item>
+                    <el-form-item :label="labphone+(idx+1)">
+                        <el-input
+                                placeholder="请输入手机号码"
+                                v-model="item.phone" style="width: 400px">
+                        </el-input>
+                        <el-button type="primary" @click="delContact(item)">删除</el-button>
+                    </el-form-item>
+                </template>
+                <el-button type="primary" style="width:250px" @click="addContact">添加联系人</el-button>
+                <el-button type="primary" style="width:250px" @click="updatePartner">确 定</el-button>
+            </el-form>
+        </el-dialog>
+
+        <!-- 个人信息维护 -->
+        <el-dialog
+                title="提示"
+                :visible.sync="infoDialogVisible"
+                width="30%">
+            <el-form ref="form" :model="station" label-width="80px">
+                <el-form-item label="名称">
+                    <el-input placeholder="名称" v-model="station.stationName"></el-input>
+                </el-form-item>
+                <
+                <el-form-item label="联系人">
+                    <el-input placeholder="联系人" v-model="station.contact"></el-input>
+                </el-form-item>
+                <el-form-item label="手机号">
+                    <el-input placeholder="手机号" v-model="station.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="联系地址">
+                    <el-input placeholder="联系地址" v-model="station.address"></el-input>
+                </el-form-item>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+                <el-button @click="infoDialogVisible = false">取 消</el-button>
+                <el-button type="primary" @click="submitInfo">确 定</el-button>
+            </span>
+        </el-dialog>
+
+        <!-- 配送价格维护 -->
+        <el-dialog
+                :visible.sync="consignDialogVisible"
+                id="consign"
+                width="450px">
+            <el-form ref="form" :model="transport" label-width="80px">
+                <el-select style="width:400px" v-model="transport.transportType" placeholder="请选择托运类型">
+                    <el-option
+                            v-for="item in transport.transportTypeList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                    </el-option>
+                </el-select>
+                <el-input style="width:400px" v-model="transport.transportName" size="large"></el-input>
+                <el-input style="width:400px" placeholder="起步重量" v-model="transport.startingWeight">
+                    <template slot="prepend">起步重</template>
+                    <template slot="append">公斤</template>
+                </el-input>
+                <el-input style="width:400px" placeholder="起步价" v-model="transport.startingRetailPrice">
+                    <template slot="prepend">终&nbsp;&nbsp;&nbsp;端</template>
+                    <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+                </el-input>
+                <el-input style="width:400px" placeholder="起步价" v-model="transport.startingJoinPrice">
+                    <template slot="prepend">加&nbsp;&nbsp;&nbsp;盟</template>
+                    <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+                </el-input>
+                <el-input style="width:400px" placeholder="续重费" v-model="transport.continueRetailPrice">
+                    <template slot="prepend">终&nbsp;&nbsp;&nbsp;端</template>
+                    <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+                </el-input>
+                <el-input style="width:400px" placeholder="续重费" v-model="transport.continueJoinPrice">
+                    <template slot="prepend">加&nbsp;&nbsp;&nbsp;盟</template>
+                    <template slot="append">&nbsp;&nbsp;元&nbsp;</template>
+                </el-input>
+                <el-input style="width:400px" placeholder="续重费" v-model="transport.maxWeight">
+                    <template slot="prepend">最大载重</template>
+                    <template slot="append">&nbsp;&nbsp;KG&nbsp;</template>
+                </el-input>
+                <el-row>
+                    <el-checkbox v-model="transport.continueAdd">连续添加</el-checkbox>
+                </el-row>
+            </el-form>
+            <el-button style="width:400px" type="primary" @click="submitTransportInfo">确 定</el-button>
+        </el-dialog>
+    </el-container>
+
+    <!--左侧-->
+    <div id="toolPanel"
+         style="position: absolute;left:25px;top:80px;background-color: white;display: flex!important;    -webkit-box-orient: vertical!important;-webkit-box-direction: normal!important;flex-direction: column!important;padding: 1rem!important;"
+         class="d-flex flex-column bg-white p-3">
+        <el-row>
+            <el-input id="search" v-model="search" placeholder="请输入内容"></el-input>
+            <el-button type="primary" @click="searchMap">搜索位置</el-button>
+        </el-row>
+        <el-row>
+            <div class="card-body">
+                <div id="nodeCount">网点数量：{{stationNum}}</div>
+                <div id="linkCount">路线数量：{{lineNum}}</div>
+            </div>
+        </el-row>
+        <el-row>
+            <div class="card-body">
+                <h5 class="card-title">使用说明</h5>
+                <li>搜索位置或鼠标右击地图标注 <img src="/static/images/pet.png" style="width: 20px;"></li>
+                <li>鼠标左键点击<img src="/static/images/pet.png" style="width: 20px;">添加网点</li>
+                <li style="margin-top: 15px">注意：删除节点时，其连接的路线也会被删除</li>
+                <hr>
+                <div id="content">
+
+                </div>
+            </div>
+        </el-row>
+    </div>
+    <!-- 添加站点 -->
+    <div id="sitePanel"
+         style="display: none;position: absolute;left:25px;top:80px;background-color: white; -webkit-box-orient: vertical!important;-webkit-box-direction: normal!important;flex-direction: column!important;padding: 1rem!important;"
+         class="d-flex flex-column bg-white p-3">
+        <div style="position: absolute;left:210px;top:0px;cursor: pointer"
+             onclick="javaScript: document.getElementById('sitePanel').style.display = 'none';"><i
+                class="iconfont iconguanbi" style="font-size: 16px;"></i></div>
+        <el-row>
+            <el-input id="province"></el-input>
+        </el-row>
+        <el-row>
+            <el-input id="city"></el-input>
+        </el-row>
+        <el-row>
+            <el-input id="district"></el-input>
+        </el-row>
+        <el-row>
+            <el-input id="address"></el-input>
+        </el-row>
+        <el-row>
+            <el-button type="primary" @click="addSite">添加派送网点</el-button>
+        </el-row>
+    </div>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+
+    var amap, placeSearch, lastMarker, geocoder;
+
+    window.onload = function () {
+    }
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                labphone: '手机号码',
+                labname: '联系人',
+                // 运输路线
+                transport: {
+                    transportTypeList: [{
+                        value: 1,
+                        label: '专车'
+                    }, {
+                        value: 2,
+                        label: '铁路'
+                    }, {
+                        value: 3,
+
+                        label: '单飞'
+                    }, {
+                        value: 4,
+                        label: '随机'
+                    }, {
+                        value: 5,
+                        label: '大巴'
+                    }],
+                    transportType: '',
+                    startCity: '',
+                    transportName: '',
+                    endCity: '',
+                    startingWeight: '',
+                    startingRetailPrice: '',
+                    startingJoinPrice: '',
+                    continueRetailPrice: '',
+                    continueJoinPrice: '',
+                    maxWeight: 0,
+                    continueAdd: true,
+                    partner: {
+                        partnerNo: ''
+                    }
+                },
+                activeIndex: '1',
+                search: '',
+                mapStyle: {
+                    height: window.innerHeight - 60 + 'px'
+                },
+                infoDialogVisible: false,
+                consignDialogVisible: false,
+                partnerDialogVisible: false,
+                partnerUpdateDialogVisible: false,
+
+                stationNum: 0, //专车网点数量
+                lineNum: 0, //专车路线数量,
+                searchResult: {
+                    name: '',
+                    lat: 0,
+                    lng: 0
+                },
+                station: {
+                    contact: '',
+                    phone: '',
+                    address: '',
+                    city: '',
+                    province: '',
+                    district: '',
+                    stationName: '',
+                    lng: 0,
+                    lat: 0
+                },
+                partner: {
+                    partnerNo: '',
+                    partnerName: '',
+                    partnerContacts: []
+                },
+                partners: []
+            }
+        },
+        methods: {
+            initMap(response) {
+                let that = this;
+
+                /**获取最后一个地区 不能是区*/
+                let getLastRegion = function (region) {
+                    if (region.district.charAt(region.district.length - 1) === '区') {
+                        return region.city || region.province;
+                    } else {
+                        return region.district;
+                    }
+                };
+
+                amap = new AMap.Map("amap", {
+                    //center: new AMap.LngLat(response.data.root.lng, response.data.root.lat),
+                    zoom: 7,
+                    resizeEnable: false
+                });
+
+                AMap.service(["AMap.PlaceSearch"], function () {
+                    //构造地点查询类
+                    placeSearch = new AMap.PlaceSearch({
+                        pageSize: 1, // 单页显示结果条数
+                        map: amap // 展现结果的地图实例
+                    });
+                    //关键字查询
+                    //this.placeSearch.search('南昌大学 ');
+                });
+
+                geocoder = new AMap.Geocoder({
+                    radius: 1000 //范围，默认：500
+                });
+
+                //创建右键菜单
+                //地图绑定鼠标右击事件——弹出右键菜单
+                amap.on('rightclick', function (e) {
+                    if (lastMarker)
+                        lastMarker.setMap(null);
+
+                    geocoder.getAddress(e.lnglat, function (status, result) {
+                        if (status === 'complete' && result.regeocode) {
+                            //geocoderResult = result.regeocode.formattedAddress;
+
+                            /*placeSearch.search(result.regeocode.addressComponent.province+result.regeocode.addressComponent.city, function (status, result1) {
+
+                                placeSearch.render.markerList.clear();*/
+
+                            let marker = new AMap.Marker({
+                                position: e.lnglat,   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                                map: amap,
+                                icon: '/static/images/pet.png',
+                                offset: new AMap.Pixel(-15, -45)
+                            });
+
+                            //amap.setZoomAndCenter(6, e.lnglat);
+
+                            /*that.station.province = result.regeocode.addressComponent.province;
+                            that.station.city = result.regeocode.addressComponent.city;*/
+                            /*that.station.lng = poi.location.lng;
+                            that.station.lat = poi.location.lat;*/
+                            let lastCity = getLastRegion(result.regeocode.addressComponent);
+
+                            that.transport.transportName = that.station.city + '-' + lastCity;
+                            that.transport.startCity = that.station.city;
+                            that.transport.endCity = lastCity;
+
+                            let addressResult = "<div>位置：" + result.regeocode.addressComponent.province + result.regeocode.addressComponent.city + "</div>" +
+                                "<div>经度：" + e.lnglat.lng + "</div>" +
+                                "<div>纬度：" + e.lnglat.lat + "</div>"
+
+                            $("#content").html(addressResult);
+
+                            $("#sitePanel").css('display', 'none');
+
+                            marker.on('click', (e) => {
+                                $("#sitePanel").css('display', 'block');
+                                $("#sitePanel").css('left', e.pixel.x - 60 + 'px');
+                                $("#sitePanel").css('top', e.pixel.y - 100 + 'px');
+
+                                $("#address").val(result.regeocode.addressComponent.city || result.regeocode.addressComponent.province);
+                                $("#province").val(result.regeocode.addressComponent.province);
+                                $("#city").val(result.regeocode.addressComponent.city || result.regeocode.addressComponent.province);
+                                $("#district").val(result.regeocode.addressComponent.district);
+                            });
+
+                            lastMarker = marker;
+
+                            /*});*/
+                        } else {
+                            log.error('根据经纬度查询地址失败')
+                        }
+                    });
+                });
+
+                //输入提示
+                var autoOptions = {
+                    input: "search"
+                };
+
+                var auto = new AMap.Autocomplete(autoOptions);
+
+                AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
+                function select(e) {
+                    placeSearch.setCity(e.poi.adcode);
+                    placeSearch.search(e.poi.name);  //关键字查询查询
+                }
+            },
+
+            openUpdatePartnerDialog() {
+                let that = this;
+                that.partnerUpdateDialogVisible = true;
+                that.partnerDialogVisible = false;
+            },
+            updatePartner() {
+                axios.put('/consign/partner', this.partner).then(e => {
+                    this.$message({
+                        type: 'success',
+                        message: '修改网点成功!'
+                    });
+                });
+            },
+
+            delContact(row) {
+                let that = this;
+                var index = this.partner.partnerContacts.indexOf(row)
+                if (index !== -1) {
+                    this.partner.partnerContacts.splice(index, 1)
+                }
+            },
+
+            addContact() {
+                let that = this;
+
+                this.partner.partnerContacts.push({
+                    partnerNo: that.partner.partnerNo,
+                    contact: '',
+                    phone: ''
+                });
+            },
+            // 删除合作网点
+            deletePartner() {
+                let that = this;
+                axios.delete('/consign/partner/' + that.partner.partnerNo, {}).then((e) => {
+                    this.$message({
+                        type: 'success',
+                        message: '删除网点成功!'
+                    });
+
+                    that.partnerDialogVisible = false;
+
+                    setTimeout(function () {
+                        location.reload();
+                    }, "1000");
+                });
+            },
+
+            // 获取我当前的信息
+            getInfo() {
+                let that = this;
+                axios.get('/consign/station/my', {}).then(response => {
+                    let root = response.data.data;
+                    // 未初始化
+                    if (root.lng == 0 && root.lat == 0) {
+                        that.$message.error("系统未初始化，系统将默认跳转至初始化界面!");
+
+                        location.href = "/consign/toEdit"
+                    }
+                    that.initMap(response);
+                    that.station.lng = root.lng;
+                    that.station.lat = root.lat;
+                    that.station.stationName = root.stationName;
+                    that.station.phone = root.phone;
+                    that.station.address = root.address;
+                    that.station.contact = root.contact;
+                    that.station.city = root.city;
+                    that.station.province = root.province;
+                    that.station.district = root.district;
+
+                    if (that.station.lng) {
+                        let marker = new AMap.Marker({
+                            position: new AMap.LngLat(root.lng, root.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                            map: amap,
+                            icon: '/static/images/zhuanche.png',
+                            offset: new AMap.Pixel(-15, -45)
+                        });
+
+                        amap.setCenter(marker.getPosition());
+                    }
+
+                    if (root.partners) {
+                        lineArr = [];
+                        for (let i = 0; i < root.partners.length; i++) {
+                            lineArr.push([root.partners[i].lng, root.partners[i].lat]);
+                            lineArr.push([that.station.lng, that.station.lat]);
+
+                            let marker = new AMap.Marker({
+                                position: new AMap.LngLat(root.partners[i].lng, root.partners[i].lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                                map: amap,
+                                extData: root.partners[i],
+                                icon: '/static/images/mark_bs.png'
+                            });
+                            amap.add(marker);
+                            marker.on('click', (e, handler, context) => {
+                                that.partnerDialogVisible = true;
+                                that.partner.partnerNo = e.target.getExtData().partnerNo;
+                                that.partner.partnerName = e.target.getExtData().partnerName;
+                                that.partner.partnerContacts = e.target.getExtData().partnerContacts;
+
+                                lastMarker = e.target;
+                            });
+                        }
+                        that.partners = root.partners;
+                    }
+
+                    that.stationNum = root.partners.length;
+                    that.lineNum = root.transports.length;
+                });
+            },
+
+            // 维护托运站信息
+            submitTransportInfo() {
+                let that = this;
+                axios.post('/consign/transport', this.transport).then(response => {
+                    that.$message({
+                        type: 'success',
+                        message: "操作成功"
+                    });
+
+                    if (!that.transport.continueAdd) {
+                        that.consignDialogVisible = false;
+                    }
+
+                    that.transport.transportType = '';
+                    that.transport.startingWeight = '';
+                    that.transport.startingRetailPrice = '';
+                    that.transport.startingJoinPrice = '';
+                    that.transport.continueRetailPrice = '';
+                    that.transport.continueJoinPrice = '';
+                    that.transport.maxWeight = 0;
+
+                    amap.setZoomAndCenter(6, new AMap.LngLat(that.station.lng, that.station.lat));
+
+                    lastMarker.setIcon(new AMap.Icon({
+                        image: '/static/images/mark_bs.png'
+                    }));
+                    //amap.moveCamera(CameraUpdateFactory.zoomTo(6));
+                });
+            },
+            // 维护托运站信息
+            submitInfo() {
+                let that = this;
+
+                // 首先逆地址获取经纬度
+                placeSearch.search(that.station.address, function (status, result) {
+                    var poi = result.poiList.pois[0];
+
+                    placeSearch.render.markerList.clear();
+
+                    amap.setZoomAndCenter(6, poi.location);
+
+                    that.station.province = poi.pname;
+                    that.station.city = poi.cityname;
+                    that.station.district = poi.adname;
+                    that.station.lng = poi.location.lng;
+                    that.station.lat = poi.location.lat;
+
+                    axios.put('/consign/station/', that.station).then(response => {
+                        that.$message({
+                            type: 'success',
+                            message: "操作成功"
+                        });
+                        that.infoDialogVisible = false;
+
+                        new AMap.Marker({
+                            position: poi.location,   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                            map: amap,
+                            icon: '/static/images/zhuanche.png',
+                            offset: new AMap.Pixel(-15, -45)
+                        })
+                    });
+                });
+            },
+            // 添加网点
+            addSite() {
+                let that = this,
+                    address = $("#address").val(),
+                    province = $("#province").val(),
+                    city = $("#city").val(),
+                    district = $("#district").val();
+                geocoder.getLocation(province + city, function (status, result) {
+                    if (status === 'complete' && result.geocodes) {
+                        axios.post('/consign/partner', {
+                            partnerName: address,
+                            province: province,
+                            lat: result.geocodes[0].location.lat,
+                            lng: result.geocodes[0].location.lng,
+                            city: city,
+                            district: district
+                        }).then(response => {
+                            lineArr = [];
+                            lineArr.push([result.geocodes[0].location.lng, result.geocodes[0].location.lat]);
+                            lineArr.push([that.station.lng, that.station.lat]);
+
+                            // 条件成功开始连线
+                            // 绘制轨迹
+                            var polyline = new AMap.Polyline({
+                                map: amap,
+                                path: lineArr,
+                                strokeColor: "#00A",  //线颜色
+                                strokeOpacity: 1,     //线透明度
+                                strokeWeight: 3,      //线宽
+                                strokeStyle: "solid"  //线样式
+                            });
+
+                            amap.remove(lastMarker);
+
+                            let marker = new AMap.Marker({
+                                position: result.geocodes[0].location,   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                                extData: response.data.data,
+                                icon: '/static/images/mark_bs.png',
+                            });
+
+                            that.transport.partner.partnerNo = response.data.data.partnerNo;
+
+                            amap.add(marker);
+
+                            marker.on('click', (e, handler, context) => {
+                                that.partnerDialogVisible = true;
+                                that.partner.partnerNo = e.target.getExtData().partnerNo;
+                                that.partner.partnerName = e.target.getExtData().partnerName;
+                                //that.partner.contact = e.target.getExtData().partnerContacts[0].contact;
+                                //that.partner.phone = e.target.getExtData().partnerContacts[0].phone;
+                                lastMarker = e.target;
+                            });
+
+                            that.consignDialogVisible = true;
+
+                            amap.add(polyline);
+
+                            $("#sitePanel").css('display', 'none');
+                        });
+                    }
+                });
+            },
+            // 地图搜索getInfo
+            searchMap() {
+                let that = this;
+
+                placeSearch.search(document.getElementById("search").value, function (status, result) {
+                    var poi = result.poiList.pois[0];
+
+                    //这个为清除搜索结果的点，不想清除注释即可
+                    placeSearch.render.markerList.clear()
+
+                    let marker = new AMap.Marker({
+                        position: poi.location,   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                        title: poi.name,
+                        icon: '/static/images/pet.png',
+                        offset: new AMap.Pixel(-15, -45)
+                    });
+
+                    lastMarker = marker;
+
+                    amap.setZoomAndCenter(6, poi.location);
+
+                    let addressResult = "<div>位置：" + result.poiList.pois[0]['name'] + "</div>" +
+                        "<div>经度：" + poi.location.lng + "</div>" +
+                        "<div>纬度：" + poi.location.lat + "</div>"
+
+                    that.searchResult.name = result.poiList.pois[0].name;
+                    that.searchResult.lat = poi.location.lat;
+                    that.searchResult.lng = poi.location.lng;
+                    that.transport.transportName = that.station.city + '-' + poi.cityname;
+                    that.transport.startCity = that.station.city;
+                    that.transport.endCity = poi.cityname;
+
+                    marker.on('click', (e) => {
+                        $("#sitePanel").css('display', 'block');
+                        $("#sitePanel").css('left', e.pixel.x - 60 + 'px');
+                        $("#sitePanel").css('top', e.pixel.y - 100 + 'px');
+
+                        $("#address").val(result.poiList.pois[0].name);
+                        $("#lng").val(poi.location.lng);
+                        $("#lat").val(poi.location.lat);
+                        $("#province").val(poi.pname);
+                        $("#city").val(poi.cityname);
+                        $("#district").val(poi.adname);
+                    });
+
+                    $("#content").html(addressResult);
+
+                    amap.add(marker);
+                });
+            }
+        },
+        mounted() {
+            this.getInfo();
+        },
+        created() {
+
+        }
+    });
+</script>
+</html>

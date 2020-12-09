@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderTempDeliverMapper">
+    <insert id="save" parameterType="com.jxywkj.application.pet.model.consign.OrderTempDeliver">
+        INSERT INTO t_consign_order_temp_deliver
+        (order_no , station_no , recipient_name , recipient_phone , address , longitude , latitude , deliver_time)
+         VALUES (#{orderTempDeliver.order.orderNo} ,
+          #{orderTempDeliver.station.stationNo} ,
+           #{orderTempDeliver.recipientName} ,
+            #{orderTempDeliver.recipientPhone} ,
+            #{orderTempDeliver.address},
+            #{orderTempDeliver.longitude} ,
+            #{orderTempDeliver.latitude},
+            #{orderTempDeliver.deliverTime}
+            );
+    </insert>
+</mapper>

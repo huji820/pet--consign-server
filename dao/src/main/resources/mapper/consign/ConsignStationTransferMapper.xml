@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignStationTransferMapper">
+
+    <insert id="insertOrUpdateStationTransfer" parameterType="com.jxywkj.application.pet.model.consign.StationTransfer">
+        DELETE FROM t_consign_station_transfer
+        WHERE station_no = #{orderNo};
+        INSERT INTO
+        t_consign_station_transfer
+        values
+        (
+          #{orderNo},
+          #{stationNo},
+          #{sn}
+        );
+    </insert>
+
+    <select id="getLastTransferByOrderNo" resultType="com.jxywkj.application.pet.model.consign.StationTransfer">
+        select * from t_consign_station_transfer
+        where order_no = #{orderNo}
+        order by sn desc
+        limit 1;
+    </select>
+
+</mapper>

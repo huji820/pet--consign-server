@@ -1,0 +1,124 @@
+Ext.define('core.coreApp.business.Business', {
+    extend: 'Ext.form.Panel',
+    layout: 'border',
+    padding: 10,
+    alias: 'widget.admin_business_info',
+    requires: ['core.search.doc.City', 'core.search.doc.Province', 'core.search.doc.District'],
+    items: [{
+        region: 'north',
+        layout: 'column',
+        baseCls: 'x-plain',
+        items: [{
+            xtype: 'textfield',
+            labelWidth: 60,
+            name: 'stationNo',
+            fieldLabel: '站点',
+            hidden: true
+        }, {
+            xtype: 'textfield',
+            labelWidth: 60,
+            name: 'stationName',
+            fieldLabel: '站点',
+            search: 'core.search.doc.Station'
+        }, {
+            xtype: 'textfield',
+            labelWidth: 80,
+            name: 'businessName',
+            fieldLabel: '商家名称'
+        }, {
+            xtype: 'province',
+            labelWidth: 80,
+            name: 'province',
+            fieldLabel: '省'
+        }, {
+            xtype: 'city',
+            labelWidth: 80,
+            name: 'city',
+            fieldLabel: '市'
+        }, {
+            xtype: 'district',
+            labelWidth: 80,
+            name: 'district',
+            fieldLabel: '县/区'
+        }, {
+            xtype: 'datefield',
+            name: 'startDate',
+            labelWidth: 80,
+            fieldLabel: '申请开始日期',
+        }, {
+            xtype: 'datefield',
+            name: 'endDate',
+            labelWidth: 80,
+            fieldLabel: '申请结束日期',
+        }, {
+            xtype: 'checkbox',
+            margin: '0 0 0 30',
+            name: 'active',
+            width: 50,
+            boxLabel: '审核'
+        }, {
+            xtype: 'button',
+            text: '查询',
+            action: 'query',
+            method: 'get',
+            uri: '/admin/business/info'
+        }, {
+            action: 'delete',
+            text: '关闭',
+            active: 'select',
+            follow: 'reflush',
+            uri: '/admin/business/info',
+            method:'delete'
+        }]
+    } ,{
+        region: 'center',
+        xtype: 'grid',
+        pagination: true,
+        autoInsert: false,
+        selType: 'checkboxmodel',
+        action: '/admin/station/station',
+        exception: {
+            key: 'withdrawNo'
+        },
+        fields: [{
+            name: 'businessNo',
+            text: '商家编号',
+            width: 200
+        }, {
+            name: 'businessName',
+            text: '商家名称',
+            width: 200
+        }, {
+            name: 'province',
+            text: '省',
+            width: 200
+        }, {
+            name: 'city',
+            text: '市',
+            width: 100
+        }, {
+            name: 'area',
+            text: '县',
+            width: 200
+        }, {
+            name: 'contact',
+            text: '联系人',
+            width: 200
+        }, {
+            name: 'contactPhone',
+            text: '联系电话',
+            width: 200
+        }, {
+            name: 'detailAddress',
+            text: '联系地址',
+            width: 200
+        }, {
+            name: 'state',
+            text: '状态',
+            width: 200,
+            renderer: function (value) {
+                return value == 1 ? "正常" : "关闭";
+            }
+        }]
+    }]
+});

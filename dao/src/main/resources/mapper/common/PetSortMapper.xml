@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.common.PetSortMapper">
+    <resultMap id="petTypeWithClassify" type="com.jxywkj.application.pet.model.common.PetSort">
+        <id column="pet_sort_no" property="petSortNo"/>
+        <result column="pet_sort_name" property="petSortName"/>
+        <collection property="petGenreList" ofType="com.jxywkj.application.pet.model.common.PetGenre">
+            <id column="pet_genre_no" property="petGenreNo"/>
+            <result column="pet_genre_name" property="petGenreName"/>
+            <result column="pet_genre_img" property="petGenreImg"/>
+        </collection>
+    </resultMap>
+
+    <select id="listPetType" resultType="com.jxywkj.application.pet.model.common.PetSort">
+        select *
+        from t_common_pet_sort
+    </select>
+    <select id="getPetType" resultType="com.jxywkj.application.pet.model.common.PetSort">
+        select *
+        from t_common_pet_sort
+        where pet_sort_name = #{petTypeName}
+        LIMIT 1;
+    </select>
+
+    <select id="listAllType" resultMap="petTypeWithClassify">
+        SELECT a.pet_sort_no,
+               a.pet_sort_name,
+               b.pet_genre_no,
+               b.pet_genre_name,
+               b.pet_genre_img
+        FROM t_common_pet_sort a
+                 LEFT JOIN t_common_pet_genre b ON a.pet_sort_no = b.pet_sort_no
+    </select>
+
+    <select id="getByPetSortNo" resultType="com.jxywkj.application.pet.model.common.PetSort">
+        SELECT * FROM t_common_pet_sort
+        WHERE pet_sort_no = #{petSortNo};
+    </select>
+</mapper>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.PostMapper">
+
+    <resultMap id="post" type="com.jxywkj.application.pet.model.consign.Post">
+        <id property="postNo" column="post_no"/>
+        <result property="postName" column="post_name"/>
+        <association property="station" javaType="com.jxywkj.application.pet.model.consign.Station">
+            <id property="stationNo" column="staff_no"/>
+            <result property="stationName" column="station_name"/>
+            <result property="province" column="province"/>
+            <result property="city" column="city"/>
+            <result property="lng" column="lng"/>
+            <result property="lat" column="lat"/>
+            <result property="contact" column="contact"/>
+            <result property="phone" column="stationPhone"/>
+            <result property="address" column="address"/>
+            <result property="openId" column="stationOpenId"/>
+            <result property="stationLicenseImage" column="station_License_image"/>
+            <result property="idcardFrontImage" column="idcard_front_image"/>
+            <result property="idcardBackImage" column="idcard_back_image"/>
+            <result property="intoDate" column="into_date"/>
+            <result property="state" column="state"/>
+            <result property="collectionQRCode" column="collection_QR_code"/>
+        </association>
+    </resultMap>
+    <delete id="deletePost">
+        delete from  t_consign_post where post_no = #{postNo}
+    </delete>
+    <select id="listPost" resultMap="post">
+        SELECT a.post_no,
+               a.post_name
+        FROM t_consign_post a
+                 JOIN t_consign_station b ON a.station_no = b.station_no
+        WHERE a.station_no = #{stationNo}
+    </select>
+
+    <insert id="insterPost">
+        insert  into  t_consign_post (post_name,station_no) values (#{post.postName},#{post.station.stationNo})
+    </insert>
+
+    <insert id="insertGroupRight">
+        insert into t_common_group_right_relation(tr_ids,tgr_name) values(#{groupRight.trIds},#{groupRight.tgrName})
+    </insert>
+
+    <update id="updatePost">
+      update  t_consign_post set post_name = #{postName} where post_no = #{postNo} and station_no = #{stationNo}
+    </update>
+
+</mapper>

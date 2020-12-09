@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.BusinessBalanceMapper">
+    <update id="saveOrUpdateRebate" parameterType="com.jxywkj.application.pet.model.business.BusinessBalance">
+        <selectKey resultType="java.math.BigDecimal" order="BEFORE" keyProperty="businessBalance.totalAmount">
+            SELECT COUNT(1) FROM t_business_balance WHERE business_no = #{businessBalance.businessNo};
+        </selectKey>
+        <choose>
+            <when test="businessBalance.totalAmount == 1">
+                UPDATE t_business_balance
+                SET total_amount = total_amount + #{businessBalance.lastRebateAmount},
+                last_rebate_amount = #{businessBalance.lastRebateAmount},
+                last_rebate_time = #{businessBalance.lastRebateTime}
+                WHERE business_no = #{businessBalance.businessNo};
+            </when>
+            <otherwise>
+                INSERT INTO t_business_balance
+                (business_no,total_amount,last_rebate_amount,last_rebate_time,last_withdraw_amount,last_withdraw_time)
+                VALUES
+                (#{businessBalance.businessNo},
+                #{businessBalance.lastRebateAmount},
+                #{businessBalance.lastRebateAmount},
+                #{businessBalance.lastRebateTime},
+                #{businessBalance.lastWithdrawAmount},
+                #{businessBalance.lastWithdrawTime}
+                );
+            </otherwise>
+        </choose>
+    </update>
+
+    <select id="getByBusinessNo" resultType="com.jxywkj.application.pet.model.business.BusinessBalance">
+        SELECT *
+        FROM t_business_balance
+        WHERE business_no = #{businessNo};
+    </select>
+
+    <update id="subtractAmount">
+        UPDATE t_business_balance
+        SET total_amount       = total_amount - #{amount},
+            last_rebate_amount = #{amount}
+        WHERE business_no = #{businessNo};
+    </update>
+</mapper>

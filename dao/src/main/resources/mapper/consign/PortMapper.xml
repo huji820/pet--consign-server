@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.PortMapper">
+    <resultMap id="orderWithSn" type="com.jxywkj.application.pet.model.consign.Order">
+        <id column="order_no" property="orderNo"/>
+        <result column="leave_date" property="leaveDate"/>
+        <result column="order_date" property="orderDate"/>
+        <result column="order_time" property="orderTime"/>
+        <result column="weight" property="weight"/>
+        <result column="num" property="num"/>
+        <result column="final_retail_price" property="finalRetailPrice"/>
+        <result column="final_join+_price" property="finalJoinPrice"/>
+        <result column="payment_amount" property="paymentAmount"/>
+        <result column="insure_rate" property="addedInsure.rate"/>
+        <result column="insure_amount" property="addedInsure.insureAmount"/>
+        <result column="pet_amount" property="petAmount"/>
+        <result column="receipt_address" property="receiptAddress"/>
+        <result column="receipt_distance" property="receiptDistance"/>
+        <result column="receipt_amount" property="receiptAmount"/>
+        <result column="send_address" property="sendAddress"/>
+        <result column="send_distance" property="sendDistance"/>
+        <result column="send_amount" property="sendAmount"/>
+        <result column="sender_name" property="senderName"/>
+        <result column="sender_phone" property="senderPhone"/>
+        <result column="receiver_name" property="receiverName"/>
+        <result column="receiver_phone" property="receiverPhone"/>
+        <result column="remarks" property="remarks"/>
+        <result column="state" property="state"/>
+        <result column="give_food" property="giveFood"/>
+        <result column="customer_no" property="customerNo"/>
+        <result column="recommend_name" property="recommendName"/>
+        <result column="recommend_phone" property="recommendPhone"/>
+        <result column="recommend_remarks" property="recommendRemarks"/>
+        <result column="pet_type_name" property="petSort.petSortName"/>
+        <result column="pet_classify_name" property="petGenre.petGenreName"/>
+        <result column="transport_num" property="orderTransport.transportNum"/>
+        <result column="express_num" property="orderTransport.expressNum"/>
+        <association property="transport" javaType="com.jxywkj.application.pet.model.consign.Transport">
+            <id column="transport_no" property="transportNo"/>
+            <result column="transport_type" property="transportType"/>
+            <result column="transport_name" property="transportName"/>
+            <result column="start_city" property="startCity"/>
+            <result column="end_city" property="endCity"/>
+        </association>
+        <collection property="orderStates" ofType="com.jxywkj.application.pet.model.consign.OrderState"
+                    javaType="java.util.List">
+            <result property="orderNo" column="state_order_no"/>
+            <result property="orderType" column="order_type"/>
+            <result property="sn" column="sn"/>
+            <collection property="orderMediaList" javaType="java.util.List"
+                        ofType="com.jxywkj.application.pet.model.consign.OrderMedia">
+                <id column="media_order_no" property="orderNo"/>
+                <id column="media_no" property="mediaNo"/>
+                <id column="media_sn" property="sn"/>
+                <result column="media_address" property="mediaAddress"/>
+                <result column="media_date" property="date"/>
+                <result column="media_time" property="time"/>
+                <result column="media_type" property="mediaType"/>
+                <result column="media_name" property="mediaName"/>
+                <result column="view_address" property="viewAddress"/>
+            </collection>
+        </collection>
+        <collection property="orderRemarksList" javaType="java.util.List"
+                    ofType="com.jxywkj.application.pet.model.consign.OrderRemarks">
+            <id column="remarks_no" property="remarksNo"/>
+            <result column="remarks_order_no" property="order.orderNo"/>
+            <result column="remarks_station_no" property="station.stationNo"/>
+            <result column="remarks_staff_no" property="staff.station.stationNo"/>
+            <result column="remarks_remarks" property="remarks"/>
+            <result column="remarks_date_time" property="dateTime"/>
+        </collection>
+    </resultMap>
+
+    <select id="listByOrderTypeAndStation" resultMap="orderWithSn">
+        SELECT
+        a.*,b.sn,
+        b.order_no AS state_order_no,
+        b.order_type, c.transport_no,
+        c.transport_name,
+        c.start_city,
+        c.end_city,
+        c.transport_type,
+        g.order_no AS media_order_no,
+        g.sn AS media_sn,
+        g.date AS media_date,
+        g.time AS media_time,
+        g.media_type,
+        g.media_name,
+        g.media_no,
+        g.media_address,
+        g.media_address AS view_address,
+        h.remarks_no ,
+        h.order_no as remarks_order_no,
+        h.station_no as remarks_station_no,
+        h.staff_no as remarks_staff_no,
+        h.remarks as remarks_remarks,
+        h.date_time as remarks_date_time,
+        i.transport_num,
+        i.express_num
+        FROM
+        t_consign_order a
+        JOIN (
+        SELECT
+        mainState.order_no,
+        mainState.order_type,
+        mainState.sn
+        FROM
+        t_consign_order_state mainState
+        JOIN (
+        SELECT
+        max(sn) AS maxsn,
+        order_no
+        FROM
+        t_consign_order_state
+        GROUP BY
+        order_no
+        ) tempState ON mainState.order_no = tempState.order_no
+        AND tempState.maxsn = mainState.sn AND mainState.station_no = #{staffOrderQueryDTO.stationNo}
+        ) b ON a.order_no = b.order_no
+        LEFT JOIN t_consign_transport c ON a.transport_no = c.transport_no
+        JOIN t_consign_order_assignment f on a.order_no = f.order_no and f.staff_no = #{staffOrderQueryDTO.staffNo}
+        LEFT JOIN (
+        SELECT
+        outmedia.*
+        FROM
+        t_consign_order_media outmedia
+        JOIN (
+        SELECT
+        max(sn) AS maxsn,
+        order_no
+        FROM
+        t_consign_order_media
+        GROUP BY
+        order_no
+        ) insidemedia ON outmedia.order_no = insidemedia.order_no
+        AND outmedia.sn = insidemedia.maxsn
+        ) g ON a.order_no = g.order_no
+        LEFT JOIN (
+        SELECT * FROM t_consign_order_remarks WHERE station_no = #{staffOrderQueryDTO.stationNo}
+        ) h on a.order_no = h.order_no AND h.station_no = #{staffOrderQueryDTO.stationNo}
+        LEFT JOIN t_consign_order_transport i ON a.order_no = i.order_no
+        <where>
+            <if test="staffOrderQueryDTO.orderNo != null and staffOrderQueryDTO.orderNo != ''">
+                AND a.order_no LIKE CONCAT('%',#{staffOrderQueryDTO.orderNo},'%')
+            </if>
+            <if test="staffOrderQueryDTO.orderTypeArray != null and staffOrderQueryDTO.orderTypeArray.length > 0">
+                AND
+                <foreach collection="staffOrderQueryDTO.orderTypeArray" open="(" close=")" separator="OR" item="item">
+                    b.order_type = #{item}
+                </foreach>
+            </if>
+            <if test="staffOrderQueryDTO.startOrderTime != null and !staffOrderQueryDTO.startOrderTime.isEmpty">
+                AND a.order_date &gt;= #{staffOrderQueryDTO.startOrderTime}
+            </if>
+            <if test="staffOrderQueryDTO.endOrderTime != null and !staffOrderQueryDTO.endOrderTime.isEmpty">
+                AND a.order_date &lt;= #{staffOrderQueryDTO.endOrderTime}
+            </if>
+            <if test="staffOrderQueryDTO.startLeaveTime != null and !staffOrderQueryDTO.startLeaveTime.isEmpty">
+                AND a.leave_date &gt;= #{staffOrderQueryDTO.startLeaveTime}
+            </if>
+            <if test="staffOrderQueryDTO.endLeaveTime != null and !staffOrderQueryDTO.endLeaveTime.isEmpty">
+                AND a.leave_date &lt;= #{staffOrderQueryDTO.endLeaveTime}
+            </if>
+
+        </where>
+        ORDER BY CONCAT(a.order_date,' ',order_time) DESC
+    </select>
+
+    <select id="listAdminByOrderTypeAndStation" resultMap="orderWithSn">
+        SELECT
+        a.*, b.sn,
+        b.order_no AS state_order_no,
+        b.order_type,c.transport_no,
+        c.transport_name,
+        c.start_city,
+        c.end_city,
+        c.transport_type,
+        f.order_no as media_order_no,
+        f.sn as media_sn,
+        f.date as media_date,
+        f.time as media_time,
+        f.media_type,
+        f.media_name,
+        f.media_no,
+        f.media_address,
+        f.media_address as view_address,
+        g.remarks_no,
+        g.order_no as remarks_order_no,
+        g.station_no as remarks_station_no,
+        g.staff_no as remarks_station_no,
+        g.remarks as remarks_remarks,
+        g.date_time as remarks_date_time,
+        h.transport_num,
+        h.express_num
+        FROM
+        t_consign_order a
+        <!-- 订单实时状态 -->
+        LEFT JOIN t_consign_order_state b ON a.order_no = b.order_no AND a.max_status_sn = b.sn
+        <!-- 订单所属运输路线 -->
+        LEFT JOIN t_consign_transport c ON a.transport_no = c.transport_no
+        <!-- 订单备注 -->
+        LEFT JOIN t_consign_order_remarks g on a.order_no = g.order_no
+        <!-- 订单车次信息 -->
+        LEFT JOIN t_consign_order_transport h ON a.order_no = h.order_no
+        <!-- 订单图片 -->
+        LEFT JOIN t_consign_order_media f ON a.order_no = f.order_no
+        <!-- 判断条件 -->
+        JOIN (
+        SELECT orders.order_no FROM t_consign_order orders
+
+        <!-- 订单最后一个状态的订单类型 -->
+        JOIN t_consign_order_state states
+        ON orders.order_no = states.order_no
+        AND orders.max_status_sn = states.sn
+        AND states.station_no = #{staffOrderQueryDTO.stationNo}
+        <if test="staffOrderQueryDTO.orderTypeArray != null and staffOrderQueryDTO.orderTypeArray.length > 0">
+            AND states.order_type IN
+            <foreach collection="staffOrderQueryDTO.orderTypeArray" item="orderType" open="(" close=")" separator=",">
+                #{orderType}
+            </foreach>
+        </if>
+
+        <!-- 目的城市 -->
+        <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.endCity)">
+            JOIN t_consign_transport transports ON orders.transport_no = transports.transport_no
+            AND transports.end_city = #{staffOrderQueryDTO.endCity}
+        </if>
+
+        <!-- 航空二字码 -->
+        <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.code)">
+            JOIN t_consign_take_detail take_details ON orders.order_no = take_details.order_no
+            AND take_details.code = #{staffOrderQueryDTO.code}
+        </if>
+
+        <!-- 其他条件 -->
+        <where>
+            <!-- 单号 -->
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.orderNo)">
+                AND orders.order_no = #{staffOrderQueryDTO.orderNo}
+            </if>
+
+            <!-- 订单时间 -->
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.startOrderTime)">
+                AND CONCAT(orders.order_date, ' ',orders.order_time) &gt; = #{staffOrderQueryDTO.startOrderTime}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.endOrderTime)">
+                AND CONCAT(orders.order_date, ' ',orders.order_time) &lt;= #{staffOrderQueryDTO.endOrderTime}
+            </if>
+
+            <!-- 出发时间 -->
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.startLeaveTime)">
+                AND leave_date &gt;= #{staffOrderQueryDTO.startLeaveTime}
+            </if>
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.endLeaveTime)">
+                AND leave_date &lt;= #{staffOrderQueryDTO.endLeaveTime}
+            </if>
+
+            <!-- 名称 -->
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.name)">
+                AND (
+                orders.sender_name = #{staffOrderQueryDTO.name}
+                OR orders.receiver_name = #{staffOrderQueryDTO.name}
+                )
+            </if>
+
+            <!-- 电话 -->
+            <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(staffOrderQueryDTO.phone)">
+                AND (
+                orders.sender_phone = #{staffOrderQueryDTO.phone}
+                OR orders.receiver_phone = #{staffOrderQueryDTO.phone}
+                )
+            </if>
+        </where>
+        ) filter ON a.order_no = filter.order_no
+        ORDER BY a.leave_date ASC;
+    </select>
+
+</mapper>

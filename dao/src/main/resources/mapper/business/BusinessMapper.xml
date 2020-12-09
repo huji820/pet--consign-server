@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.business.BusinessMapper">
+    <insert id="saveBusiness" parameterType="com.jxywkj.application.pet.model.business.Business">
+        INSERT INTO t_business_business (business_no,
+                                         business_name,
+                                         register_time,
+                                         start_hours,
+                                         end_hours,
+                                         contact,
+                                         contact_phone,
+                                         `password`,
+                                         `describe`,
+                                         pay_bond,
+                                         fans,
+                                         auth_type,
+                                         longitude,
+                                         latitude,
+                                         province,
+                                         city,
+                                         area,
+                                         detail_address,
+                                         head_img,
+                                         state,
+                                         unionid,
+                                         power,
+                                         follow_qty,
+                                         complete,
+                                         credit,
+                                         balance,
+                                         `level`,
+                                         is_have_service,
+                                         customer_no,
+                                         we_chat_img)
+        VALUES (#{business.businessNo},
+                #{business.businessName},
+                #{business.registerTime},
+                #{business.startHours},
+                #{business.endHours},
+                #{business.contact},
+                #{business.contactPhone},
+                #{business.password},
+                #{business.describe},
+                #{business.payBond},
+                #{business.fans},
+                #{business.authType},
+                #{business.longitude},
+                #{business.latitude},
+                #{business.province},
+                #{business.city},
+                #{business.area},
+                #{business.detailAddress},
+                #{business.headImg},
+                #{business.state},
+                #{business.unionId},
+                #{business.power},
+                #{business.followQty},
+                #{business.complete},
+                #{business.credit},
+                #{business.balance},
+                #{business.level},
+                #{business.haveService},
+                #{business.customerNo},
+                #{business.weChatImg});
+    </insert>
+
+    <insert id="save">
+        INSERT INTO t_business_business (
+        `business_no`,
+        `business_name`,
+        `register_time`,
+        `start_hours`,
+        `end_hours`,
+        `contact`,
+        `contact_phone`,
+        `password`,
+        `describe`,
+        `pay_bond`,
+        `auth_type`,
+        `fans`,
+        `longitude`,
+        `latitude`,
+        `province`,
+        `city`,
+        `area`,
+        `detail_address`,
+        `head_img`,
+        `state`,
+        `unionid`,
+        `follow_qty`,
+        `complete`,
+        `credit`,
+        `level`,
+        `balance`,
+        `customer_no`,
+        `we_chat_img`,
+        `shop_img`,
+        `openid`
+        )
+        VALUES (
+        #{business.businessNo},
+        #{business.businessName},
+        #{business.registerTime},
+        #{business.startHours},
+        #{business.endHours},
+        #{business.contact},
+        #{business.contactPhone},
+        #{business.password},
+        #{business.describe},
+        #{business.payBond},
+        #{business.authType},
+        #{business.fans},
+        #{business.longitude},
+        #{business.latitude},
+        #{business.province},
+        #{business.city},
+        #{business.area},
+        #{business.detailAddress},
+        #{business.headImg},
+        #{business.state},
+        #{business.unionId},
+        #{business.followQty},
+        #{business.complete},
+        #{business.credit},
+        #{business.level},
+        #{business.balance},
+        #{business.customerNo},
+        #{business.weChatImg},
+        #{business.shopImages},
+        #{business.openid}
+        ) ;
+    </insert>
+
+    <select id="login" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE contact_phone = '17167994988'
+    </select>
+
+    <select id="getByBusinessNo" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE business_no = #{businessNo}
+          AND state = #{state};
+    </select>
+
+    <select id="selByBusinessByNo" parameterType="java.lang.String" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE business_no = #{businessNo}
+    </select>
+
+    <select id="listByPosition" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *, SQRT(POW(longitude - #{businessPosition.longitude}, 2) + POW(latitude - #{businessPosition.latitude},
+        2)) AS distance
+        FROM t_business_business
+        WHERE longitude
+        BETWEEN #{businessPosition.startLongitude} AND #{businessPosition.endLongitude}
+        AND latitude
+        BETWEEN #{businessPosition.startLatitude} AND #{businessPosition.endLatitude}
+        AND state = #{state}
+        ORDER BY distance ASC
+        <if test="limit != 0">
+            LIMIT #{offset},#{limit}
+        </if>
+    </select>
+
+    <select id="getBusinessByPhoneAndState" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE contact_phone = #{phone}
+          AND state = #{state}
+        LIMIT 1;
+    </select>
+
+    <select id="getByPhone" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE contact_phone = #{phone}
+        <if test="state != null">
+            AND state = #{state}
+        </if>
+        LIMIT 1;
+    </select>
+
+    <select id="listByProvinceCityAndType" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE province = #{province}
+          AND city = #{city}
+          AND state = #{state};
+    </select>
+
+    <select id="listByProvinceAndType" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE province = #{province}
+          AND state = #{state};
+    </select>
+
+    <update id="updateBusinessState">
+        UPDATE t_business_business
+        SET state = #{business.state}
+        WHERE business_no = #{business.businessNo};
+    </update>
+
+    <select id="listAdminBusiness" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT *
+        FROM t_business_business
+        WHERE
+        state = #{state}
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.businessNo)">
+            and business_no = #{business.businessNo}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.businessName)">
+            and (business_name like concat('%', #{business.businessName}, '%'))
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.province)">
+            and province like concat(#{business.province}, '%')
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.city)">
+            and city = #{business.city}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.area)">
+            and area = #{business.area}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(startDate)">
+            and register_time &gt;= #{startDate}
+        </if>
+
+        <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(endDate)">
+            and register_time &lt;= #{endDate}
+        </if>
+        LIMIT #{start}, #{limit};
+    </select>
+
+    <select id="countAdminBusiness" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM t_business_business
+        <where>
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.businessNo)">
+                and business_no = #{business.businessNo}
+            </if>
+
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.businessName)">
+                and (business_name like concat('%', #{business.businessName}, '%'))
+            </if>
+
+            <if test="@com.yangwang.sysframework.utils.StringUtil@isNotNull(business.province)">
+                and province = #{business.province}
+            </if>
+        </where>
+    </select>
+
+    <delete id="deleteByBusinessNo">
+        DELETE
+        FROM t_business_business
+        WHERE business_no = #{businessNo};
+    </delete>
+
+    <select id="getByOpenId" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT a.business_no,
+               a.business_name,
+               a.register_time,
+               a.start_hours,
+               a.end_hours,
+               a.contact,
+               a.contact_phone,
+               a.password,
+               a.`describe`,
+               a.pay_bond,
+               a.fans,
+               a.auth_type,
+               a.longitude,
+               a.latitude,
+               a.province,
+               a.city,
+               a.area,
+               a.detail_address,
+               a.head_img,
+               a.state,
+               a.unionid,
+               a.power,
+               a.follow_qty,
+               a.complete,
+               a.credit,
+               a.balance,
+               a.level,
+               a.is_have_service,
+               a.customer_no,
+               a.we_chat_img
+        FROM t_business_business a
+                 JOIN t_customer_openid b ON a.customer_no = b.customer_no
+        WHERE b.open_id = #{openId};
+    </select>
+    <select id="getByUnionId" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT a.business_no,
+               a.business_name,
+               a.register_time,
+               a.start_hours,
+               a.end_hours,
+               a.contact,
+               a.contact_phone,
+               a.password,
+               a.`describe`,
+               a.pay_bond,
+               a.fans,
+               a.auth_type,
+               a.longitude,
+               a.latitude,
+               a.province,
+               a.city,
+               a.area,
+               a.detail_address,
+               a.head_img,
+               a.state,
+               a.unionid,
+               a.power,
+               a.follow_qty,
+               a.complete,
+               a.credit,
+               a.balance,
+               a.level,
+               a.is_have_service,
+               a.customer_no,
+               a.we_chat_img
+        FROM t_business_business a
+        WHERE a.unionid = #{unionId};
+    </select>
+
+    <select id="listByGroupCity" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT business_no,
+               business_name,
+               register_time,
+               start_hours,
+               end_hours,
+               contact,
+               contact_phone,
+               password,
+               `describe`,
+               pay_bond,
+               fans,
+               auth_type,
+               longitude,
+               latitude,
+               province,
+               city,
+               area,
+               detail_address,
+               head_img,
+               state,
+               unionid,
+               power,
+               follow_qty,
+               complete,
+               credit,
+               balance,
+               level,
+               is_have_service,
+               customer_no,
+               we_chat_img
+        FROM t_business_business
+        GROUP BY city;
+    </select>
+
+    <select id="listByProvince" resultType="com.jxywkj.application.pet.model.business.Business">
+        SELECT business_no,
+               business_name,
+               register_time,
+               start_hours,
+               end_hours,
+               contact,
+               contact_phone,
+               password,
+               `describe`,
+               pay_bond,
+               fans,
+               auth_type,
+               longitude,
+               latitude,
+               province,
+               city,
+               area,
+               detail_address,
+               head_img,
+               state,
+               unionid,
+               power,
+               follow_qty,
+               complete,
+               credit,
+               balance,
+               level,
+               is_have_service,
+               customer_no,
+               we_chat_img
+        FROM t_business_business
+        WHERE province = #{province};
+    </select>
+
+    <select id="getHaveNewGiftBagByCustomerNo" resultType="integer">
+        SELECT is_have_new_gift_bag FROM t_business_business WHERE customer_no = #{customerNo};
+    </select>
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.TransportTakeDetailMapper">
+    <resultMap id="baseTransportTakeDetail" type="com.jxywkj.application.pet.model.consign.TransportTakeDetail">
+        <id column="transport_take_detail_no" property="transportTakeDetailNo"/>
+        <result column="transport_no" property="transport.transportNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdate">
+        DELETE
+        FROM t_consign_transport_take_detail
+        WHERE transport_no = #{transportTakeDetail.transport.transportNo}
+        <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(transportTakeDetail.code)">
+            AND `code` = #{transportTakeDetail.code}
+        </if>
+        ;
+        INSERT INTO t_consign_transport_take_detail (transport_no, contact, phone, province, city, region,
+        detailAddress, longitude, latitude, `code`)
+        values (#{transportTakeDetail.transport.transportNo},
+        #{transportTakeDetail.contact},
+        #{transportTakeDetail.phone},
+        #{transportTakeDetail.province},
+        #{transportTakeDetail.city},
+        #{transportTakeDetail.region},
+        #{transportTakeDetail.detailAddress},
+        #{transportTakeDetail.longitude},
+        #{transportTakeDetail.latitude},
+        #{transportTakeDetail.code});
+    </insert>
+
+    <select id="listByTransportNoAndCode" resultMap="baseTransportTakeDetail">
+        SELECT transport_take_detail_no,
+        transport_no,
+        contact,
+        phone,
+        province,
+        city,
+        region,
+        detailAddress,
+        longitude,
+        latitude
+        FROM t_consign_transport_take_detail
+        WHERE transport_no = #{transportNo}
+        <if test="@org.apache.commons.lang3.StringUtils@isNotBlank(code)">
+            AND `code` = #{code};
+        </if>
+    </select>
+
+    <select id="listByOrderNo" resultMap="baseTransportTakeDetail">
+        SELECT
+	      a.transport_take_detail_no,
+	      a.transport_no,
+	      a.contact,
+          a.phone,
+	      a.province,
+	      a.city,
+	      a.region,
+	      a.detailAddress,
+  	      a.longitude,
+	      a.latitude
+        FROM
+	      t_consign_transport_take_detail a
+        WHERE
+	      a.city = (
+            SELECT c.end_city FROM t_consign_transport c
+            WHERE c.transport_no = (
+              SELECT b.transport_no
+              FROM t_consign_order b
+              WHERE b.order_no = #{orderNo}
+              )
+            )
+
+    </select>
+</mapper>

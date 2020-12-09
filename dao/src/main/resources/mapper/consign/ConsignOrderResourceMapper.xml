@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ConsignOrderResourceMapper">
+
+    <resultMap id="resourceResult" type="com.jxywkj.application.pet.model.consign.OrderResource">
+        <id column="resource_no" property="resourceNo"/>
+        <result column="resource_address" property="resourceAddress"/>
+        <result column="date" property="date"/>
+        <result column="time" property="time"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="resource_name" property="resourceName"/>
+        <collection property="resourcePool" ofType="com.jxywkj.application.pet.model.consign.OrderResourcePool">
+            <id column="resourcepool_no" property="resourcePoolNo"/>
+            <result column="order_no" property="orderNo"/>
+            <result column="node" property="node"/>
+            <result column="delay_time" property="delayTime"/>
+            <result column="remarks" property="remarks"/>
+        </collection>
+    </resultMap>
+
+    <insert id="save">
+        <selectKey resultType="java.lang.Integer" order="BEFORE" keyProperty="resourceNo">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        INSERT INTO t_consign_order_resource
+          (
+            resource_address,
+            resource_pool_no,
+            `date`,
+            `time`,
+            resource_type,
+            resource_name
+          )
+        values (
+          #{orderResource.resourceAddress},
+          #{orderResource.resourcePool.resourcePoolNo},
+          #{orderResource.date},
+          #{orderResource.time},
+          #{orderResource.resourceType},
+          #{orderResource.resourceName}
+          );
+    </insert>
+
+    <delete id="deleteByResourcePoolNo">
+        DELETE FROM t_consign_order_resource
+        WHERE resource_pool_no = #{resourcePoolNo};
+    </delete>
+
+    <select id="listByResourcePoolNo" resultMap="resourceResult">
+        select * FROM t_consign_order_resource t
+        LEFT JOIN t_consign_order_resource_pool p ON p.resourcepool_no = t.resource_pool_no
+        WHERE t.resource_pool_no = #{resourcePoolNo};
+    </select>
+</mapper>

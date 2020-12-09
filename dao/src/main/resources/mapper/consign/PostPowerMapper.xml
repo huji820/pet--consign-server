@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.PostPowerMapper">
+    <resultMap id="postPowerMap" type="com.jxywkj.application.pet.model.common.PostPower">
+        <id column="post_no" property="post.postNo"/>
+        <result column="field_no" property="orderField.fieldNo"/>
+        <result column="field" property="orderField.field"/>
+    </resultMap>
+
+
+    <insert id="saveOrUpdate" parameterType="com.jxywkj.application.pet.model.common.PostPower">
+        <if test="postPower.orderFieldList != null and  postPower.orderFieldList.size > 0">
+            DELETE FROM t_consign_post_power WHERE post_no = #{postPower.post.postNo} AND file_no IN
+            <foreach collection="postPower.orderFieldList" item="item" open="(" close=");" separator=",">
+                #{item.fieldNo}
+            </foreach>
+            INSERT INTO t_consign_post_power (post_no , field_no , field) VALUES
+            <foreach collection="postPower.orderFieldList" item="item" close=";" separator=",">
+                (#{postPower.post.postNo} , #{item.fieldNo} ,#{item.field} )
+            </foreach>
+        </if>
+
+    </insert>
+
+    <select id="listByPostNo" parameterType="java.lang.Integer" resultMap="postPowerMap">
+        SELECT * FROM t_consign_post_power WHERE post_no = #{postNo};
+    </select>
+
+    <select id="listFieldsByPostNo" resultType="java.lang.String">
+        SELECT field FROM t_consign_post_power WHERE post_no = #{postNo};
+    </select>
+</mapper>

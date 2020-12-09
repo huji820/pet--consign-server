@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.ExcelTransportMapper">
+    <select id="listTranSportByStationNo" resultType="com.jxywkj.application.pet.model.common.ExcelTransportDO">
+        SELECT * FROM t_consign_transport WHERE station_no = #{stationNo};
+    </select>
+</mapper>

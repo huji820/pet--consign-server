@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>订单管理</title>
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/icon/iconfont.css"/>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        #app {
+            padding: 0px;
+            margin: 0px;
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            width: 100%;
+            height: 100%;
+            border: hidden;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div v-loading="loading">
+        <el-container style="height: 800px; border: 1px solid #eee">
+            <el-container>
+                <el-main>
+                    <el-row>
+                        <!-- 左侧送宠上门配置 -->
+                        <el-col :span="11">
+                            <h1>送宠上门配置</h1>
+                            <el-switch
+                                    v-model="send.gradient"
+                                    active-text="按梯度计算"
+                                    inactive-text="按里程计算">
+                            </el-switch>
+                            <div v-show="send.gradient">
+                                <el-table
+                                        :data="send.sendArray"
+                                        style="width: 100%">
+                                    <el-table-column
+                                            prop="startDistance"
+                                            label="开始里程数（km）">
+                                    </el-table-column>
+                                    <el-table-column
+                                            prop="endDistance"
+                                            label="结束里程数（km）">
+                                    </el-table-column>
+                                    <el-table-column
+                                            prop="price"
+                                            label="价格（元）">
+                                    </el-table-column>
+                                </el-table>
+                                <div style="float: right">
+                                    <el-button type="primary" @click="sendAddAction">添加</el-button>
+                                    <el-button type="danger" @click="sendRemoveAction">删除</el-button>
+                                    <el-button type="danger" @click="sendClearAction">清空</el-button>
+                                </div>
+                            </div>
+                            <div v-show="!send.gradient">
+                                <el-form ref="send.sendItem" :model="send.sendItem">
+                                    <el-form-item label="每公里单价（元/km）" style="width: 80%">
+                                        <el-input v-model="send.sendItem.price"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                            <el-button type="primary" @click="saveOrUpdateSend">保存</el-button>
+                        </el-col>
+                        <!-- 中间间隔 -->
+                        <el-col :span="2">
+                            &nbsp;
+                        </el-col>
+                        <!-- 右侧上门接宠配置 -->
+                        <el-col :span="11">
+                            <h1>上门接宠配置</h1>
+                            <el-switch
+                                    v-model="receipt.gradient"
+                                    active-text="按梯度计算"
+                                    inactive-text="按里程计算">
+                            </el-switch>
+                            <div v-show="receipt.gradient">
+                                <el-table
+                                        :data="receipt.receiptArray"
+                                        style="width: 100%">
+                                    <el-table-column
+                                            prop="startDistance"
+                                            label="开始里程数（km）">
+                                    </el-table-column>
+                                    <el-table-column
+                                            prop="endDistance"
+                                            label="结束里程数（km）">
+                                    </el-table-column>
+                                    <el-table-column
+                                            prop="price"
+                                            label="价格（元）">
+                                    </el-table-column>
+                                </el-table>
+                                <div style="float:  right">
+                                    <el-button type="primary" @click="receiptAddAction">添加</el-button>
+                                    <el-button type="danger" @click="receiptRemoveAction">删除</el-button>
+                                    <el-button type="danger" @click="receiptClearAction">清空</el-button>
+                                </div>
+                            </div>
+                            <div v-show="!receipt.gradient">
+                                <el-form ref="receipt.receiptItem" :model="send.receiptItem" style="width: 80%">
+                                    <el-form-item label="每公里单价（元/km）">
+                                        <el-input v-model="receipt.receiptItem.price"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </div>
+                            <el-button type="primary" @click="saveOrUpdateReceipt">保存</el-button>
+                        </el-col>
+                    </el-row>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+    <!-- 送宠上门模态框 -->
+    <el-dialog title="送宠上门" :visible.sync="send.showDialog">
+        <el-form :model="send.sendTempAdd">
+            <el-form-item label="起始距离（km）">
+                <el-input type="number" v-model="send.sendTempAdd.startDistance" placeholder="起始距离"
+                          :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="结束距离（km）">
+                <el-input type="number" v-model="send.sendTempAdd.endDistance" placeholder="结束距离"></el-input>
+            </el-form-item>
+            <el-form-item label="区间价格（元）">
+                <el-input type="number" v-model="send.sendTempAdd.price" placeholder="区间价格"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="send.showDialog = false">取 消</el-button>
+            <el-button type="primary" @click="sendEnterAction">确 定</el-button>
+        </div>
+    </el-dialog>
+    <!-- 上门接宠模态框 -->
+    <el-dialog title="上门接宠" :visible.sync="receipt.showDialog">
+        <el-form :model="receipt.receiptTempAdd">
+            <el-form-item label="起始距离（km）">
+                <el-input type="number" v-model="receipt.receiptTempAdd.startDistance" placeholder="起始距离"
+                          :disabled="true"></el-input>
+            </el-form-item>
+            <el-form-item label="结束距离（km）">
+                <el-input type="number" v-model="receipt.receiptTempAdd.endDistance" placeholder="结束距离"></el-input>
+            </el-form-item>
+            <el-form-item label="区间价格（元）">
+                <el-input type="number" v-model="receipt.receiptTempAdd.price" placeholder="区间价格"></el-input>
+            </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+            <el-button @click="receipt.receiptDialog = false">取 消</el-button>
+            <el-button type="primary" @click="receiptEnterAction">确 定</el-button>
+        </div>
+    </el-dialog>
+</div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="/static/js/jQuery-2.2.0.min.js"></script>
+<script src="/static/js/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                loading: false,
+                send: {
+                    showDialog: false,
+                    sendItem: {
+                        sendNo: '',
+                        startDistance: null,
+                        endDistance: null,
+                        price: 0,
+                        station: null
+                    },
+                    sendTempAdd: {
+                        sendNo: '',
+                        startDistance: 0,
+                        endDistance: 0,
+                        price: 0,
+                        station: null
+                    },
+                    sendArray: [],
+                    gradient: false
+                },
+                receipt: {
+                    showDialog: false,
+                    receiptTempAdd: {
+                        receiptNo: '',
+                        startDistance: null,
+                        endDistance: null,
+                        price: 0,
+                        station: null
+                    },
+                    receiptItem: {
+                        receiptNo: 0,
+                        startDistance: null,
+                        endDistance: null,
+                        price: 0,
+                        station: null
+                    },
+                    receiptArray: [],
+                    gradient: false
+                }
+            }
+        },
+        methods: {
+            /**获取送宠上门配置*/
+            getSend() {
+                this.loading = true;
+                axios.get('/consign/onDoor/getSend').then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.showSend(res.data.data);
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.loading = false;
+                    this.$message.error('获取送宠上门配置失败！');
+                });
+            },
+            /**送宠上门确定按钮事件*/
+            sendEnterAction() {
+                if (!this.send.sendTempAdd.endDistance || this.send.sendTempAdd.price == null) {
+                    this.$message.error('数据不完整！');
+                    return;
+                }
+                if (parseFloat(this.send.sendTempAdd.endDistance) <= parseFloat(this.send.sendTempAdd.startDistance)) {
+                    this.$message.error('结束距离不能小于等于起始距离');
+                    return;
+                }
+                this.send.sendArray.push(this.send.sendTempAdd);
+                this.send.sendTempAdd = this.newEmptySend();
+                this.send.showDialog = false;
+            },
+            /**送宠上门添加按钮事件*/
+            sendAddAction() {
+                this.send.sendTempAdd.startDistance = this.getMaxSendDistance();
+                this.send.showDialog = true;
+            },
+            /**送宠上门删除按钮事件*/
+            sendRemoveAction() {
+                this.send.sendArray.pop();
+            },
+            /**送宠上门清除按钮事件*/
+            sendClearAction() {
+                this.send.sendArray = [];
+            },
+            /**上门接宠确定按钮事件*/
+            receiptEnterAction() {
+                if (!this.receipt.receiptTempAdd.endDistance || this.receipt.receiptTempAdd.price == null) {
+                    this.$message.error('数据不完整！');
+                    return;
+                }
+                if (parseFloat(this.receipt.receiptTempAdd.endDistance) <= parseFloat(this.receipt.receiptTempAdd.startDistance)) {
+                    this.$message.error('结束距离不能小于等于起始距离');
+                    return;
+                }
+                this.receipt.receiptArray.push(this.receipt.receiptTempAdd);
+                this.receipt.receiptTempAdd = this.newEmptyReceipt();
+                this.receipt.showDialog = false;
+            },
+            /**上门接宠添加按钮事件*/
+            receiptAddAction() {
+                this.receipt.receiptTempAdd.startDistance = this.getMaxReceiptDistance();
+                this.receipt.showDialog = true;
+            },
+            /**上门接宠删除按钮事件*/
+            receiptRemoveAction() {
+                this.receipt.receiptArray.pop();
+            },
+            /**上门接宠清除按钮事件*/
+            receiptClearAction() {
+                this.receipt.receiptArray = [];
+            },
+            /**获取送宠上门最大的距离*/
+            getMaxSendDistance() {
+                if (this.send.sendArray && this.send.sendArray.length > 0) {
+                    return this.send.sendArray[this.send.sendArray.length - 1].endDistance;
+                }
+                return 0;
+            },
+            /**获取上门接宠的最大距离*/
+            getMaxReceiptDistance() {
+                if (this.receipt.receiptArray && this.receipt.receiptArray.length > 0) {
+                    return this.receipt.receiptArray[this.receipt.receiptArray.length - 1].endDistance;
+                }
+                return 0;
+            },
+            /**更新或者保存上门配置*/
+            saveOrUpdateSend() {
+                // 如果是按梯度
+                if (this.send.gradient) {
+                    if (!this.send.sendArray || this.send.sendArray.length === 0) {
+                        this.$message.error('请至少填写一个梯度！');
+                        return;
+                    }
+                } else {
+                    if (this.send.sendItem.price == null) {
+                        this.$message.error('请填写价格！');
+                        return;
+                    }
+                    this.send.sendArray = [];
+                    this.send.sendArray.push(this.send.sendItem);
+                }
+                this.loading = true;
+                axios.put('/consign/onDoor/send', this.send.sendArray).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.$message({
+                            message: '保存成功！',
+                            type: 'success'
+                        });
+                    } else {
+                        this.$message.error('保存失败！');
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.loading = false;
+                    this.$message.error("保存失败！" + err.message);
+
+                });
+            },
+            /**获取上门接宠配置*/
+            getReceipt() {
+                this.loading = true;
+                axios.get('/consign/onDoor/getReceipt', this.receipt.receiptArray).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.showReceipt(res.data.data);
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.$message.error('获取上门接宠配置失败！');
+                    this.loading = false;
+                });
+            },
+            /**新增或者保存上门接宠配置*/
+            saveOrUpdateReceipt() {
+                // 如果是按梯度计算
+                if (this.receipt.gradient) {
+                    if (!this.receipt.receiptArray || this.receipt.receiptArray.length === 0) {
+                        this.$message.error('请至少填写一个梯度！');
+                        return;
+                    }
+                } else {
+                    if (this.receipt.receiptItem.price == null) {
+                        this.$message.error('请填写价格！');
+                        return;
+                    }
+                    this.receipt.receiptArray = [];
+                    this.receipt.receiptArray.push(this.receipt.receiptItem);
+                }
+                this.loading = true;
+                axios.put('/consign/onDoor/receive', this.receipt.receiptArray).then(res => {
+                    if (res.status === 200 && res.data.code === 200) {
+                        this.$message({
+                            message: '保存成功！',
+                            type: 'success'
+                        });
+                    } else {
+                        this.$message.error('保存失败！');
+                    }
+                    this.loading = false;
+                }).catch(err => {
+                    this.$message.error('保存失败！' + err.message);
+                    this.loading = false;
+                });
+            },
+            /**显示送宠上门*/
+            showSend(sendList) {
+                // 是否按梯度计算（存在一个或者多个梯度以及开始距离不为空）
+                if (sendList != null
+                    && sendList.length > 0) {
+                    if (sendList[0].startDistance != null) {
+                        this.send.gradient = true;
+                        this.send.sendArray = sendList;
+                        this.newEmptySend();
+                    } else {
+                        this.send.sendItem = sendList[0];
+                    }
+                }
+            },
+            /**显示上门接宠*/
+            showReceipt(receiptArray) {
+                if (receiptArray != null
+                    && receiptArray.length > 0) {
+                    if (receiptArray[0].startDistance != null) {
+                        this.receipt.gradient = true;
+                        this.receipt.receiptArray = receiptArray;
+                        this.newEmptyReceipt();
+                    } else {
+                        this.receipt.receiptItem = receiptArray[0];
+                    }
+                }
+            },
+            /**创建一个送宠上门对象*/
+            newEmptySend() {
+                return {
+                    sendNo: '',
+                    startDistance: 0,
+                    endDistance: 0,
+                    price: 0,
+                    station: null
+                };
+            },
+            /**创建一个上门接宠对象*/
+            newEmptyReceipt() {
+                return {
+                    receiptNo: '',
+                    startDistance: 0,
+                    endDistance: 0,
+                    price: 0,
+                    station: null
+                };
+            }
+        },
+        mounted() {
+        }
+        ,
+        created() {
+            this.getSend();
+            this.getReceipt();
+            this.maxHeight = document.body.clientHeight - 150;
+        }
+    })
+    ;
+</script>
+</html>

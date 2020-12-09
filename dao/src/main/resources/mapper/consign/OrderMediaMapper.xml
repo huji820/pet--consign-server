@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.OrderMediaMapper">
+    <insert id="addAMedia" parameterType="com.jxywkj.application.pet.model.consign.OrderMedia">
+        INSERT INTO t_consign_order_media (media_no,order_no,sn,media_address,media_name,date,time,media_type)
+        VALUES(#{orderMedia.mediaNo},#{orderMedia.orderNo},
+        #{orderMedia.sn},#{orderMedia.mediaAddress},
+        #{orderMedia.mediaName},#{orderMedia.date},
+        #{orderMedia.time},#{orderMedia.mediaType});
+    </insert>
+
+    <insert id="addMediaList" parameterType="list">
+        <if test="orderMediaList != null">
+            INSERT INTO t_consign_order_media (media_no,order_no,sn,media_address,media_name,date,time,media_type)
+            VALUES
+            <foreach collection="orderMediaList" item="media" close=";" separator=",">
+                (#{media.mediaNo},#{media.orderNo},
+                #{media.sn},#{media.mediaAddress},
+                #{media.mediaName},#{media.date},
+                #{media.time},#{media.mediaType})
+            </foreach>
+        </if>
+    </insert>
+
+    <select id="getByAddress" resultType="com.jxywkj.application.pet.model.consign.OrderMedia">
+        SELECT * FROM t_consign_order_media WHERE media_address = #{address} LIMIT 1;
+    </select>
+
+    <update id="updateOrderMediaSn" parameterType="com.jxywkj.application.pet.model.consign.OrderMedia">
+        UPDATE t_consign_order_media SET sn = #{orderMedia.sn} WHERE order_no = #{orderMedia.orderNo} and  media_no = #{orderMedia.mediaNo};
+    </update>
+
+</mapper>

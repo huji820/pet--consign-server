@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="/static/css/index.css">
+    <script src="/static/js/axios.min.js"></script>
+    <script src="https://webapi.amap.com/maps?v=1.4.6&key=d1d31c861469e1023b9c1308679f9155&plugin=AMap.Autocomplete,AMap.PlaceSearch,AMap.Geocoder"></script>
+    <script src="/static/js/plugins/city-picker/city-data.js"></script>
+</head>
+<style>
+    .div_center {
+        width: 60%;
+        margin: 0 auto
+    }
+
+    .head_title {
+        font-size: 25px
+    }
+</style>
+
+<body>
+<div id="app" class="div_center">
+    <div style="padding: 20px 0 10px 0">
+        <span class="head_title">编辑站点信息</span>
+    </div>
+    <el-row :gutter="20">
+        <el-col :span="12" :gutter="20">
+            <el-form :model="transport" status-icon label-width="100px" label-position="left" style="font-size: 25px">
+                <el-form-item label="站点名称">
+                    <el-input type="text" v-model="station.stationName"></el-input>
+                </el-form-item>
+                <el-form-item label="联系人">
+                    <el-input type="text" v-model="station.contact"></el-input>
+                </el-form-item>
+                <el-form-item label="联系人电话">
+                    <el-input v-model.number="station.phone"></el-input>
+                </el-form-item>
+                <el-form-item label="客服电话">
+                    <el-input v-model.number="station.servicePhone"></el-input>
+                </el-form-item>
+                <el-form-item label="经度">
+                    <el-input v-model.number="station.lng" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="纬度">
+                    <el-input v-model.number="station.lat" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="地区">
+                    <el-cascader
+                            v-model="form.selectedOptions"
+                            :change-on-select="true"
+                            :clearable="true"
+                            :filterable="true"
+                            @change="handleChange">
+                    </el-cascader>
+                    <span>所选地区：{{form.city | myAddressCity}}{{form.erae | myAddressErae}}{{form.minerae | myAddressMinerae}}</span>
+                </el-form-item>
+                <el-form-item label="地址">
+                    <el-input v-model.number="station.address"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" style="width: 45%" @click="searchMap">定位</el-button>
+                    <el-button type="primary" style="width: 45%" @click="updateStation">保存</el-button>
+                </el-form-item>
+            </el-form>
+        </el-col>
+        <el-col :span="12">
+            <div id="amap" :style="mapStyle"></div>
+        </el-col>
+    </el-row>
+</div>
+</body>
+
+
+<!-- import Vue before Element -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<!-- import JavaScript -->
+<script src="/static/js/index.js"></script>
+<script>
+
+    var amap, placeSearch, lastMarker, geocoder;
+
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                form: {
+                    city: '',
+                    erae: '',
+                    minerae: '',
+                    selectedOptions: [],//地区筛选数组
+                },
+                cityInfo: cityInfo,
+                transport: {
+                    businessNo: '',
+                    nodeName: '',
+                    contacts: '',
+                    contactsPhone: '',
+                    longitude: '',
+                    latitude: '',
+                    province: '',
+                    city: '',
+                    area: ''
+                },
+                searchResult: {
+                    name: '',
+                    lat: 0,
+                    lng: 0
+                },
+                station: {
+                    contact: '',
+                    phone: '',
+                    address: '',
+                    city: '',
+                    province: '',
+                    district: '',
+                    stationNo: '',
+                    stationName: '',
+                    servicePhone: '',
+                    lng: 0,
+                    lat: 0
+                },
+                mapStyle: {
+                    height: '480px'
+                },
+            }
+        },
+        methods: {
+            handleChange(value) {
+                this.form.city = this.form.selectedOptions[0];
+                this.form.erae = this.form.selectedOptions[1];
+                this.form.minerae = this.form.selectedOptions[2];
+            },
+            initMap(response) {
+                let that = this;
+
+                amap = new AMap.Map("amap", {
+                    //center: new AMap.LngLat(response.data.root.lng, response.data.root.lat),
+                    zoom: 6,
+                    resizeEnable: false
+                });
+
+                AMap.service(["AMap.PlaceSearch"], function () {
+                    //构造地点查询类
+                    placeSearch = new AMap.PlaceSearch({
+                        pageSize: 1, // 单页显示结果条数
+                        map: amap // 展现结果的地图实例
+                    });
+                    //关键字查询
+                    //this.placeSearch.search('南昌大学 ');
+                });
+
+            },
+            // 地图搜索getInfo
+            searchMap() {
+                let that = this;
+
+                placeSearch.search(that.station.address, function (status, result) {
+                    var poi = result.poiList.pois[0];
+
+                    amap.setZoomAndCenter(12, poi.location);
+
+                    that.station.lat = poi.location.lat;
+                    that.station.lng = poi.location.lng;
+                    that.station.province = poi.pname;
+                    that.station.city = poi.cityname;
+                    that.station.district = poi.adname;
+                    that.station.address = poi.address;
+                });
+            },
+            updateStation() {
+                let that = this;
+
+                axios.put('/consign/station/', that.station).then(response => {
+                    that.$message({
+                        type: 'success',
+                        message: "操作成功"
+                    });
+                });
+            },
+            // 获取我当前的信息
+            getInfo() {
+                let that = this;
+                axios.get('/consign/station/my', {}).then(response => {
+                    let root = response.data.data;
+
+                    that.initMap(response);
+                    that.station.lng = root.lng;
+                    that.station.lat = root.lat;
+                    that.station.stationName = root.stationName;
+                    that.station.servicePhone = root.servicePhone;
+                    that.station.phone = root.phone;
+                    that.station.address = root.address;
+                    that.station.contact = root.contact;
+                    that.station.city = root.city;
+                    that.station.province = root.province;
+
+                    if (that.station.lng) {
+                        let marker = new AMap.Marker({
+                            position: new AMap.LngLat(root.lng, root.lat),   // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                            map: amap,
+                            icon: '/static/images/zhuanche.png',
+                            offset: new AMap.Pixel(-15, -45)
+                        });
+
+                        amap.setCenter(marker.getPosition());
+                    }
+                });
+            }
+        },
+        mounted() {
+            this.getInfo();
+        },
+        created() {
+
+        }
+    })
+</script>
+</html>

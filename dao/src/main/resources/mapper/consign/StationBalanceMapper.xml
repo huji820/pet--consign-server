@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jxywkj.application.pet.dao.consign.StationBalanceMapper">
+    <resultMap id="baseStationRebate" type="com.jxywkj.application.pet.model.consign.StationBalance">
+        <result column="station_no" property="station.stationNo"/>
+    </resultMap>
+
+    <insert id="saveOrUpdateRebate" parameterType="com.jxywkj.application.pet.model.consign.StationBalance">
+        <selectKey resultType="java.math.BigDecimal" order="BEFORE" keyProperty="stationBalance.totalAmount">
+            SELECT COUNT(1) FROM t_station_balance WHERE station_no = #{stationBalance.station.stationNo};
+        </selectKey>
+        <choose>
+            <when test="stationBalance.totalAmount == 1">
+                UPDATE t_station_balance
+                SET total_amount = total_amount + #{stationBalance.lastRebateAmount},
+                last_rebate_amount = #{stationBalance.lastRebateAmount},
+                last_rebate_time = #{stationBalance.lastRebateTime}
+                WHERE station_no = #{stationBalance.station.stationNo};
+            </when>
+            <otherwise>
+                INSERT INTO t_station_balance
+                (station_no,total_amount,last_rebate_amount,last_rebate_time,last_withdraw_amount,last_withdraw_time)
+                VALUES
+                (#{stationBalance.station.stationNo},
+                #{stationBalance.lastRebateAmount},
+                #{stationBalance.lastRebateAmount},
+                #{stationBalance.lastRebateTime},
+                #{stationBalance.lastWithdrawAmount},
+                #{stationBalance.lastWithdrawTime}
+                );
+            </otherwise>
+        </choose>
+    </insert>
+
+    <update id="subtractTotalAmountByWithdraw">
+        UPDATE t_station_balance
+        SET total_amount         = total_amount - #{subtractAmount},
+            last_withdraw_amount = #{subtractAmount},
+            last_withdraw_time   = NOW()
+        WHERE station_no = #{stationNo}
+    </update>
+
+    <select id="getTotalByStationNo" resultType="java.math.BigDecimal">
+        SELECt IFNULL(SUM(total_amount), 0) AS totalAmolunt
+        FROM t_station_balance
+        WHERE station_no = #{stationNo};
+    </select>
+
+</mapper>
